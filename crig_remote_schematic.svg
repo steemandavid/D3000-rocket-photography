@@ -1,7 +1,7 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1910 1220" width="1910" height="1220" font-family="Helvetica, Arial, sans-serif">
 <rect width="1910" height="1220" fill="white"/>
 <text x="20" y="30" font-size="22" text-anchor="start" font-weight="bold" fill="#1f2430">CRIG remote — schematic</text>
-<text x="20" y="48" font-size="12" text-anchor="start" font-weight="normal" fill="#6b7280">Rocket liftoff camera rig · v0.3 2026-11-03 (as built + ARM line, spec v0.17) · hardware test: MCU, VBAT, buzzer, motor, RGB, SHOOT, LEDs, OLED pass; J1 / TRIG / DET not wired yet · spec v0.17 §8, §9.2, §11.2, §12.2</text>
+<text x="20" y="48" font-size="12" text-anchor="start" font-weight="normal" fill="#6b7280">Rocket liftoff camera rig · v0.4 2026-11-03 (as built + ARM line, DIN-5 connector, spec v0.18) · hardware test: MCU, VBAT, buzzer, motor, RGB, SHOOT, LEDs, OLED pass; J1 / TRIG / DET not wired yet · spec v0.18 §8, §9.2, §11.2, §12.2</text>
 <rect x="20" y="60" width="600" height="450" rx="8" fill="none" stroke="#9aa3b2" stroke-width="1.5" stroke-dasharray="6 4"/>
 <text x="32" y="80" font-size="14" text-anchor="start" font-weight="bold" fill="#6b7280">A · POWER (18650, 1S PROTECTION, CHARGE + 5 V BOOST, SENSE)</text>
 <rect x="40" y="110" width="120" height="84" rx="4" fill="none" stroke="#1f2430" stroke-width="2"/>
@@ -154,14 +154,14 @@
 <text x="660" y="818" font-size="10" text-anchor="start" font-weight="normal" font-style="italic" fill="#6b7280">GPIO 1 is ADC1 (works with ESP-NOW active).</text>
 <text x="660" y="831" font-size="10" text-anchor="start" font-weight="normal" font-style="italic" fill="#6b7280">IO48 = on-board RGB LED. IO38 not used.</text>
 <rect x="1040" y="60" width="850" height="450" rx="8" fill="none" stroke="#9aa3b2" stroke-width="1.5" stroke-dasharray="6 4"/>
-<text x="1052" y="80" font-size="14" text-anchor="start" font-weight="bold" fill="#6b7280">C · RLC INTERFACE (GX12-4: TRIG + ARM, two optocouplers)</text>
+<text x="1052" y="80" font-size="14" text-anchor="start" font-weight="bold" fill="#6b7280">C · RLC INTERFACE (5-pin DIN 180°: TRIG + ARM, two optocouplers)</text>
 <rect x="1070" y="96" width="130" height="314" rx="4" fill="none" stroke="#1f2430" stroke-width="2"/>
-<text x="1135" y="116" font-size="13" text-anchor="middle" font-weight="bold" fill="#1f2430">J1  GX12-4</text>
-<text x="1135" y="130" font-size="10" text-anchor="middle" font-weight="normal" fill="#6b7280">panel socket</text>
+<text x="1135" y="116" font-size="13" text-anchor="middle" font-weight="bold" fill="#1f2430">J1  DIN-5 180°</text>
+<text x="1135" y="130" font-size="10" text-anchor="middle" font-weight="normal" fill="#6b7280">AD322 female chassis</text>
 <text x="1078" y="154" font-size="10" text-anchor="start" font-weight="normal" fill="#6b7280">1 TRIG+  ← GPIO39</text>
-<text x="1078" y="274" font-size="10" text-anchor="start" font-weight="normal" fill="#6b7280">2 ARM+  ← GPIO41</text>
-<text x="1078" y="364" font-size="10" text-anchor="start" font-weight="normal" fill="#6b7280">3 COM−  ← GND</text>
-<text x="1078" y="396" font-size="10" text-anchor="start" font-weight="normal" fill="#6b7280">4 n.c.</text>
+<text x="1078" y="274" font-size="10" text-anchor="start" font-weight="normal" fill="#6b7280">3 ARM+  ← GPIO41</text>
+<text x="1078" y="364" font-size="10" text-anchor="start" font-weight="normal" fill="#6b7280">2 COM−  ← GND</text>
+<text x="1078" y="396" font-size="10" text-anchor="start" font-weight="normal" fill="#6b7280">4, 5 n.c.</text>
 <line x1="1440" y1="100" x2="1440" y2="420" stroke="#f08c00" stroke-width="1.5" stroke-linecap="round" stroke-dasharray="8 5"/>
 <text x="1440" y="96" font-size="10" text-anchor="middle" font-weight="normal" fill="#f08c00">isolation barrier ≥ 10 MΩ (IF-05)</text>
 <text x="1425" y="418" font-size="10" text-anchor="end" font-weight="normal" fill="#f08c00">RLC side</text>
@@ -281,7 +281,7 @@
 <line x1="1658" y1="310" x2="1662" y2="310" stroke="#1f2430" stroke-width="2" stroke-linecap="round"/>
 <text x="1870" y="244" font-size="11" text-anchor="end" font-weight="bold" fill="#2f9e44">ARM_IN → IO6</text>
 <text x="1870" y="264" font-size="9" text-anchor="end" font-weight="normal" fill="#6b7280">pattern: none / 1 Hz / 10 Hz</text>
-<text x="1060" y="446" font-size="10" text-anchor="start" font-weight="normal" font-style="italic" fill="#6b7280">Pins 1–3 reach only the two PC817 LEDs and D1/D3: no copper path to the remote (IF-05, T-15). Pin 4 n.c.</text>
+<text x="1060" y="446" font-size="10" text-anchor="start" font-weight="normal" font-style="italic" fill="#6b7280">Pins 1–3 reach only the two PC817 LEDs and D1/D3: no copper path to the remote (IF-05, T-15). Cable: AD302 both ends, straight through.</text>
 <text x="1060" y="459" font-size="10" text-anchor="start" font-weight="normal" font-style="italic" fill="#6b7280">ARM (§8.3): no pulses = RLC not connected / hung; 1 Hz (100 ms on) = connected; 10 Hz = armed → PREPARE.</text>
 <text x="1060" y="472" font-size="10" text-anchor="start" font-weight="normal" font-style="italic" fill="#6b7280">TRIG is accepted only while ARM decodes as armed (§8.6). Filters 10 k × 10 n ≈ 0.1 ms.</text>
 <rect x="1040" y="530" width="850" height="310" rx="8" fill="none" stroke="#9aa3b2" stroke-width="1.5" stroke-dasharray="6 4"/>

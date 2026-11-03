@@ -24,7 +24,16 @@ Prijzen incl. btw, opgehaald op 2026-10-07 (kortingsprijs waar van toepassing). 
 - ESP32-S3-DevKitC-1 (zelfde bord als de RLC) in plaats van een losse module; voor u.FL de -1U-variant (O-16)
 - 2.54 mm gepolariseerde connectoren (JST-XH-klasse, crimpcontacten): J2 3-pins (voeding + S, stroom ~1–1,5 A, geen losse Dupont) en J3 4-pins (signalen), steker + bus, 1 set voor de node; draad in de kleuren van het schema
 - 2S-BMS ≥8 A en 2S-balanslader
-- GX12-4 (remote) en XT30 (alleen de laad-/ontlaadlead van het pack)
+- XT30 (alleen de laad-/ontlaadlead van het pack)
+
+## RLC-interface (spec v0.18, nog te bestellen bij Gotron)
+
+| Gotron-ref. | Onderdeel | Aantal | Stukprijs | Totaal | Opmerking |
+|---|---|---|---|---|---|
+| AD322 | 5-polige DIN 180° vrouwelijk, chassismontage (plastic) | 2 | €1,23 | €2,46 | RLC-basis + CRIG-remote (vervangt GX12-4) |
+| AD302 | 5-polige DIN 180° mannelijk, voor op kabel (plastic) | 2 | €1,57 | €3,14 | Beide kabeleinden; kabel 1-op-1 bedraden (1–1, 2–2, 3–3) |
+| PC817 | Optocoupler | +1 | €0,22 | €0,22 | Tweede opto (ARM) in de remote; uit reserve als die er nog is |
+| | **Totaal** | | | **≈ €5,82** | Prijzen opgehaald 2026-11-03 |
 - TPS63020 en BQ24074 (remote)
 - Grote gele SHOOT-knop, ARM-toggle met beugel, TEST/MENU-knoppen, schuifschakelaar
 

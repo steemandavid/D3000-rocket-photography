@@ -3,7 +3,7 @@
 | | |
 |---|---|
 | **Document** | Camera Rig (CRIG) — Functional Specification |
-| **Version** | 0.17 (draft) |
+| **Version** | 0.18 (draft) |
 | **Date** | 2026-11-03 |
 | **Author** | David Steeman |
 | **Status** | Draft — wired release (option B) selected; camera power validation open (O-12); remote simplified (no arming, SHOOT only) |
@@ -301,10 +301,10 @@ The node never switches the camera off while the shutter is not in REST or withi
 | ID | Requirement |
 |---|---|
 | RR-01 | ESP-NOW in unicast mode between one remote and one node, bound to each other at build time (§7.4). |
-| RR-02 | Operating channel configurable 1–13 (`radio_channel`), default **1**. It shall not be set to channel 11 (the RLC's fixed channel) and should be non-overlapping with it (1 or 6). |
+| RR-02 | Operating channel `radio_channel`, a build-time setting for both CRIG units (§7.4), **default and specified value: channel 1** (2412 MHz, 20 MHz wide). The CRIG channel shall be **at least 5 channels away from the RLC channel** (no overlap of the 20 MHz channels), and should be as far away as possible, because the CRIG remote sits within 1 m of the RLC base in scenario A. With the RLC on channel 11, channel 1 gives the maximum spacing (50 MHz); channel 6 (25 MHz) is the fallback if channel 1 is unusable on the field. If the RLC's `WIFI_CHANNEL` is ever changed after a field survey, re-check this rule and re-flash both CRIG units if needed. |
 | RR-03 | ESP-NOW encryption enabled with a PMK and a per-pair local master key (LMK) fixed at build time (§7.4). |
 | RR-04 | Optional Espressif long-range mode (`radio_lr_mode`), enabled on both ends or neither. The RLC does not use LR mode. |
-| RR-05 | TX power configurable (`radio_tx_power`). |
+| RR-05 | TX power configurable (`radio_tx_power`). In scenario A the remote is ~1 m from the RLC base; if T-20 shows any effect on the RLC link, reduce the remote's TX power (the node is only 5–10 m away). |
 | RR-06 | Both units use an ESP32-S3 with an external antenna connector (u.FL) where range requires it. The node uses the same ESP32-S3-DevKitC-1 dev board as the RLC (WROOM-1, PCB antenna); a -1U variant with u.FL is to be chosen if the range test (T-30) needs it (O-16). The remote uses an **ESP32-S3-DevKitC-1U** (WROOM-1U, u.FL) with an external antenna (v0.15). |
 
 ### 7.2 Packet format
@@ -359,7 +359,8 @@ Consequences: no pairing logic, no PAIRING state and no radio exchange of keys; 
 
 ### 7.5 Coexistence with the RLC and other systems
 
-- The RLC uses ESP-NOW on fixed channel 11 without LR mode (`WIFI_CHANNEL` in the RLC's `rlc_config.h`). The CRIG uses channel 1 by default; there is no radio interaction between the two systems.
+- The RLC uses ESP-NOW on **channel 11** (2462 MHz), 20 MHz wide (`WIFI_SECOND_CHAN_NONE`), without LR mode: `WIFI_CHANNEL 11` in the RLC's `components/rlc_common/include/rlc_config.h`, applied in `rlc_espnow.c` (checked 2026-11-03). The RLC spec treats 11 as a default that may be changed after a field survey (it avoids channel 1, which is often congested at events).
+- The CRIG uses **channel 1** (RR-02): the non-overlapping channel furthest from 11, chosen because the RLC link is safety-critical and the CRIG remote sits next to the RLC base. Possible congestion on channel 1 is acceptable for the CRIG: hold-to-shoot tolerates lost packets (`t_shoot_timeout` 300 ms = 6 SHOOT packets at 20 Hz), and a lost burst only costs photos. Use channel 6 if a survey shows channel 1 unusable.
 - Different peer MACs, encryption keys and magic number additionally prevent any cross-acceptance, even if channels were ever set equal.
 - CRIG air time is negligible (≤ 20 packets/s of ≤ 32 bytes each way).
 - For third-party launch systems (scenario B), check on site whether they use 2.4 GHz and choose a free channel if needed.
@@ -377,16 +378,18 @@ ARM is not an operator arming step for the CRIG (principle 8 stands): it only pr
 
 ### 8.2 Connector and pinout
 
-A 4-pin keyed, weatherproof circular connector (e.g. GX12-4) on the RLC base panel and on the CRIG remote. The connector type shall **not** be used for any other purpose on the RLC base (in particular not for igniter outputs), so the CRIG cable and igniter leads cannot be confused.
+A **5-pin DIN 180°** connector pair (v0.18, chosen for cost: Gotron AD322 female chassis socket, €1.23, on the RLC base panel **and** on the CRIG remote; AD302 male plastic cable plug, €1.57, on **both** ends of the cable). It is keyed and fits one way only; it is not waterproof and has no lock, which is acceptable because the remote sits next to the base sheltered from exhaust and weather (§4.2), and an unplugged cable is a safe failure: ARM lost → TRIG ignored → RLC LOST shown before the launch (§8.6). Add strain relief (cable tie) at both ends. The connector type shall **not** be used for any other purpose on the RLC base (in particular not for igniter outputs), so the CRIG cable and igniter leads cannot be confused.
+
+DIN pin numbering along the arc is 1 – 4 – 2 – 5 – 3, so COM− sits on the centre pin and the two signals are separated by unused pins.
 
 | Pin | Signal | Side | Description |
 |---|---|---|---|
 | 1 | TRIG+ | RLC base | Base **GPIO39** via 470 Ω → TRIG optocoupler (U4) LED anode in the remote |
-| 2 | ARM+ | RLC base | Base **GPIO41** via 470 Ω → ARM optocoupler (U6) LED anode in the remote |
-| 3 | COM− | RLC base | Base ground → both LED cathodes (shared return) |
-| 4 | — | — | Not connected (spare) |
+| 2 | COM− | RLC base | Base ground → both LED cathodes (shared return); centre pin |
+| 3 | ARM+ | RLC base | Base **GPIO41** via 470 Ω → ARM optocoupler (U6) LED anode in the remote |
+| 4, 5 | — | — | Not connected (spare) |
 
-Both optocoupler LEDs and their reverse diodes are on the RLC side of the isolation barrier, so the shared return does not compromise the isolation. Cable length ≤ 1 m.
+Both optocoupler LEDs and their reverse diodes are on the RLC side of the isolation barrier, so the shared return does not compromise the isolation. Cable: ≤ 1 m, 3 cores used (≥ 3-core shielded or unshielded audio cable is fine), wired **straight through** (1–1, 2–2, 3–3). Do not use a ready-made DIN audio cable without checking it: some swap pins 1↔3 and 4↔5 (recording leads), which would swap TRIG and ARM.
 
 ### 8.3 ARM line patterns
 
@@ -425,8 +428,11 @@ Based on the RLC base state machine (IDLE → ARMED → PRE_FIRE → FIRING → 
 | Fire pulse ends | 10 Hz | Start a one-shot timer of `cam_post_ms` (3000 ms), then **deassert** |
 | POST_FIRE → IDLE | 10 Hz while TRIG is still asserted, then 1 Hz | As above |
 | Any exit from PRE_FIRE other than to FIRING (abort, link lost, key off, continuity lost, dead-man) | 1 Hz | **Deassert immediately**, cancel timers |
-| ERROR state, disarm, emergency safe | 1 Hz | **Deassert immediately**, cancel timers |
+| Any exit from FIRING (pulse completed on link loss, cease-fire, key off, disarm, arm sense lost, ERROR, emergency safe) | 10 Hz while TRIG is still asserted, then 1 Hz | Treated as a pulse end: TRIG stays asserted, the `cam_post_ms` timer runs (started if not yet running) |
+| ERROR, disarm, emergency safe, LINK_LOST before FIRING | 1 Hz | **Deassert immediately**, cancel timers |
 | Hard cap | — | Deassert after `cam_max_ms` (10 s) of continuous assertion, regardless of state |
+
+**Rule (v0.18, after the RLC review):** before FIRING is entered, every abort deasserts TRIG immediately (no igniter current has flowed, the burst only held pre-ignition frames). Once FIRING has been entered, TRIG always ends through the `cam_post_ms` timer (or the hard cap), whatever happens next: normal pulse end, pulse completed on link loss (`COMPLETE_PULSE_ON_LINK_LOSS`), cease-fire, key off, disarm, arm sense lost, ERROR or the emergency-safe path. The igniter may already have lit, so the liftoff should still be photographed; TRIG is an isolated output and cannot affect the fire path. ARM is armed in ARMED, PRE_FIRE, FIRING and POST_FIRE; in every other state (IDLE, **LINK_LOST**, ERROR) it shows 1 Hz, except while TRIG is still asserted (the CRIG only accepts TRIG with ARM armed).
 
 Lead time for preparing the camera: the ARM line goes to 10 Hz at least 5 s before ignition (the PRE_FIRE delay) and up to ~15 s before (plus the time the operator spends in ARMED, at most `ARM_TIMEOUT_MS`), against 2 s for TRIG.
 
@@ -437,7 +443,7 @@ Lead time for preparing the camera: the ARM line goes to 10 Hz at least 5 s befo
 - **PREPARE:** while ARM decodes as ARMED, the remote sets `prepare` = 1 in every packet to the node (FR-R15); the node prepares the camera (FR-N19).
 - **Readiness** (FR-R13): once the remote is in RLC mode (status ≠ NONE), green additionally requires CONNECTED or ARMED.
 
-Details for the RLC side are in Appendix A and in the hand-off document `docs/RLC_change_request_CRIG_v0.17.md`.
+Details for the RLC side are in Appendix A and in the hand-off document `docs/RLC_change_request_CRIG.md`.
 
 ## 9. States and user interface
 
@@ -461,7 +467,7 @@ There are no DISARMED and ARMED states (removed v0.15). Link state (up, or lost 
 |---|---|---|
 | SHOOT | Large momentary push button; as built a plain push button, with a green and a red 3 mm LED next to it as readiness indicator (O-18 closed) | Hold to shoot (scenario B manual trigger; also works in scenario A). A short tap takes 1–2 test frames. The LEDs show rig readiness (FR-R13) |
 | Power | Toggle switch | Remote on/off; as built in the battery P+ line between the 1S protection board and the power-bank module, so the module draws nothing while off. The cell only charges with the switch on (§11.2) |
-| RLC socket | GX12-4 (§8.2) | TRIG and ARM from the RLC base |
+| RLC socket | 5-pin DIN 180° female, Gotron AD322 (§8.2) | TRIG and ARM from the RLC base |
 | Charge port | USB-C on the power-bank charger/boost module | Charging the remote battery (switch on; the remote keeps running while charging) |
 | Status LED | On-board WS2812 RGB LED of the dev board, behind a light pipe or window | Overall status (FR-R14), patterns below |
 
@@ -636,7 +642,7 @@ Draft schematic: `crig_remote_schematic.svg` (PNG alongside), v0.1, not bench-va
 
 - **ESP32-S3-DevKitC-1U** dev board (same family as the RLC and the node; WROOM-1U N16R8 like the RLC, so GPIO 35–37 are taken by the octal PSRAM) with an external antenna on the u.FL connector. Powered at 5 V on 5V0; on-board LDO, EN/BOOT buttons and USB-C used for flashing and the console
 - Battery, protection, charger and 5 V boost per §11.2 (as built: 1S protection board + power-bank charger/boost module)
-- RLC socket (GX12-4) with two PC817 optocoupler inputs: TRIG → IO5 (U4) and ARM → IO6 (U6), each with anti-parallel diode, 10 kΩ pull-up and 10 nF (§8). The cable-detect loop is removed (v0.17)
+- RLC socket (5-pin DIN 180° female, Gotron AD322) with two PC817 optocoupler inputs: TRIG → IO5 (U4) and ARM → IO6 (U6), each with anti-parallel diode, 10 kΩ pull-up and 10 nF (§8). The cable-detect loop is removed (v0.17)
 - SHOOT button with bi-colour ring: contact to a GPIO with pull-up; each ring colour **directly from a GPIO through a series resistor**, no transistors (high-efficiency LEDs, ~1–2 mA). The ring must light at ≤ 3.3 V per colour (O-18). **As built (2026-11-03):** a plain push button (no LED ring) plus two separate 3 mm LEDs, green on IO10 and red on IO11, GPIO → resistor → LED → GND
 - 0.96" I²C OLED (VMA438) on 3.3 V
 - Status LED: the dev board's on-board WS2812 on **GPIO48** (fixed, same as the RLC's `PIN_RGB_LED`; verified working 2026-11-03, O-19 closed)
@@ -651,7 +657,7 @@ Stored in node NVS unless noted; editable from the node's USB console. The remot
 
 | Parameter | Default | Range | Notes |
 |---|---|---|---|
-| `radio_channel` | 1 | 1–13, ≠ 11 | Build-time, both units; RLC uses 11 |
+| `radio_channel` | 1 | 1–13, ≥ 5 channels from the RLC channel | Build-time, both units; RLC uses 11 → 1 (fallback 6) (RR-02) |
 | `radio_lr_mode` | off | on/off | Both units |
 | `radio_tx_power` | max | — | Both units |
 | `f_heartbeat` | 5 Hz | 2–10 Hz | Remote |
@@ -697,12 +703,12 @@ RLC-side parameters (`cam_lead_ms`, `cam_post_ms`, `cam_max_ms` and the ARM patt
 | T-09 | Node reset during burst | Boots to IDLE, REST; next burst only after new SHOOT packets |
 | T-10 | Corrupt/foreign packets (fuzzing, wrong key, wrong magic) | No action, no reply |
 | T-11 | Low pack / low remote battery (bench supply ramp) | Warnings and cutoffs at the configured voltages, reported on the remote |
-| T-12 | TRIG from a bench supply + 470 Ω, with a 10 Hz ARM pattern on pin 2 (any ESP32 GPIO through 470 Ω) | Burst while asserted; REST within `t_trig_debounce` + `t_shoot_timeout` after deassert |
+| T-12 | TRIG from a bench supply + 470 Ω, with a 10 Hz ARM pattern on pin 3 (any ESP32 GPIO through 470 Ω) | Burst while asserted; REST within `t_trig_debounce` + `t_shoot_timeout` after deassert |
 | T-13 | Cable unplugged / no ARM pattern, TRIG forced on | TRIG ignored, no SHOOT; status NONE (or LOST if a heartbeat was seen since power-on) |
 | T-14 | Camera powered from the node pack (bench supply 6.6–8.4 V, then the real pack) | Camera operates normally over the full range; battery level plausible (PW-01) |
 | T-15 | Galvanic isolation of the RLC interface | ≥ 10 MΩ between pins 1–3 and remote ground |
 | T-16 | Short in the camera lead (via fuse test load) | The pack fuse opens; nothing smokes, the BMS does not trip first |
-| T-17 | ARM decoding (pattern source on pin 2) | 1 Hz → CONNECTED; 10 Hz → ARMED within 0.5 s; back to 1 Hz → CONNECTED within 0.5 s; steady on or off → LOST within `t_arm_lost` + 0.5 s |
+| T-17 | ARM decoding (pattern source on pin 3) | 1 Hz → CONNECTED; 10 Hz → ARMED within 0.5 s; back to 1 Hz → CONNECTED within 0.5 s; steady on or off → LOST within `t_arm_lost` + 0.5 s |
 | T-18 | TRIG gating | TRIG asserted with ARM at 1 Hz, steady on or absent → no burst; ARM 10 Hz → burst; ARM stopped during a burst → REST within 0.3 s + `t_shoot_timeout` |
 | T-19 | PREPARE (camera in standby; then with `cam_power_ctrl` on and the camera off) | ARM 10 Hz → camera wakes (and switches on) without taking a picture; stays awake while armed; no wake pulses after ARM returns to 1 Hz |
 
@@ -715,7 +721,7 @@ RLC-side parameters (`cam_lead_ms`, `cam_post_ms`, `cam_max_ms` and the ARM patt
 | T-22 | RLC abort during PRE_FIRE (release fire button; key off) | TRIG deasserted within 20 ms of the abort; ARM back to 1 Hz; burst stops |
 | T-23 | RLC base power-off during burst | TRIG inactive, ARM pattern stops; node REST within `t_shoot_timeout`; remote shows RLC LOST, stays on and linked |
 | T-24 | RLC timing unchanged | PRE_FIRE and fire pulse durations identical (± 5 ms) with and without the CRIG connected |
-| T-25 | Short between pin 1 or pin 2 and pin 3 at the CRIG end | Current limited by the 470 Ω resistor; RLC base continues to operate normally |
+| T-25 | Short between pin 1 or pin 3 and pin 2 (COM−) at the CRIG end | Current limited by the 470 Ω resistor; RLC base continues to operate normally |
 | T-26 | ARM after base power-on | No pulses during boot; 1 Hz within 2 s of power-on |
 | T-27 | ARM on RLC transitions (arm, disarm, arm timeout, key off, ERROR) | 10 Hz within 100 ms of entering ARMED; 1 Hz within 100 ms of returning to IDLE / ERROR (or of TRIG deasserting after a fire) |
 
@@ -753,8 +759,8 @@ RLC-side parameters (`cam_lead_ms`, `cam_post_ms`, `cam_max_ms` and the ARM patt
 | O-6 | Actual camera frame count feedback is not available from the D3000; the remote shows an estimate only |
 | O-7 | ~~Node power option~~ — closed: node pack powers node and camera; camera battery removed, leads soldered to its terminals (§11.3) |
 | O-8 | Verify on the physical RLC base that **GPIO39 (TRIG) and GPIO41 (ARM)** are unconnected. Chosen 2026-11-03 from the RLC spec App. C.1 spares (38, 39, 41), cross-checked against the RLC `pin_config.h` (base uses 1, 2, 4–18, 21, 40, 42, 47, 48) and the DevKitC-1 N16R8 reserved pins; GPIO38 kept spare (on-board RGB on v1.1 boards; the base is v1.0, LED on GPIO48) |
-| O-20 | RLC side of the interface (Appendix A, v0.17): hand-off `docs/RLC_change_request_CRIG_v0.17.md` to the RLC project; implement, test (T-21…T-27) |
-| O-9 | Location of the GX12-4 socket on the RLC base panel |
+| O-20 | RLC side of the interface (Appendix A, v0.17): hand-off `docs/RLC_change_request_CRIG.md` to the RLC project; implement, test (T-21…T-27) |
+| O-9 | Location of the 5-pin DIN socket (AD322) on the RLC base panel |
 | O-10 | ~~Isolated DC-DC converter~~ — closed: no longer needed; the remote has its own battery and the interface is fully optically isolated |
 | O-11 | Measure the D3000's actual current draw (standby, meters active, during a burst) and update the §11.3 budget |
 | O-12 | EN-EL9a S contact: ≈100 kΩ NTC-like plus 9600 baud data (not 98 Ω); a fixed resistor does not remove the "battery cannot be used" error. **Parked**; the node cannot yet power the camera, the camera uses the original battery (PW-01). Reopen when camera power from the node is needed. Sniffer `firmware/ssniff` ready (bench only); alternative: a third-party EP-5 coupler that works in the D3000 without error |
@@ -769,20 +775,20 @@ RLC-side parameters (`cam_lead_ms`, `cam_post_ms`, `cam_max_ms` and the ARM patt
 
 ## Appendix A — RLC change request (base unit)
 
-This appendix describes the changes needed in the RLC project (`steemandavid/ESP32-RocketLaunchController`) to support scenario A. A self-contained version for the RLC project is in `docs/RLC_change_request_CRIG_v0.17.md`.
+This appendix describes the changes needed in the RLC project (`steemandavid/ESP32-RocketLaunchController`) to support scenario A. A self-contained version for the RLC project is in `docs/RLC_change_request_CRIG.md`.
 
 ### A.1 Summary
 
-Add two optically isolated outputs to the RLC base on a new 4-pin panel socket: **TRIG**, a steady level during a fixed window around ignition (unchanged from v0.4–v0.16), and **ARM**, a heartbeat pulse pattern (1 Hz = connected, 10 Hz = armed, §8.3). No power is supplied to the CRIG. No change to the radio protocol, the RLC remote, or any fire-path element.
+Add two optically isolated outputs to the RLC base on a new 5-pin DIN panel socket: **TRIG**, a steady level during a fixed window around ignition (unchanged from v0.4–v0.16), and **ARM**, a heartbeat pulse pattern (1 Hz = connected, 10 Hz = armed, §8.3). No power is supplied to the CRIG. No change to the radio protocol, the RLC remote, or any fire-path element.
 
 ### A.2 Hardware changes
 
 | # | Change |
 |---|---|
-| H-1 | New GX12-4 panel socket, pinout per §8.2. Different connector type from all igniter connections. |
+| H-1 | New **5-pin DIN 180° female chassis socket** (Gotron AD322), pinout per §8.2. Different connector type from all igniter connections (XT30) and the battery (XT60). |
 | H-2 | TRIG: **GPIO39** → 470 Ω series resistor → socket pin 1; 10 kΩ pull-down at the GPIO (IF-01, IF-02). |
-| H-3 | ARM: **GPIO41** → 470 Ω series resistor → socket pin 2; 10 kΩ pull-down at the GPIO. |
-| H-4 | Base ground → socket pin 3 (shared return for both LEDs). Pin 4 not connected. The pins 3–4 cable-detect bridge of v0.4–v0.16 is dropped. |
+| H-3 | ARM: **GPIO41** → 470 Ω series resistor → socket pin 3; 10 kΩ pull-down at the GPIO. |
+| H-4 | Base ground → socket pin 2, the centre pin (shared return for both LEDs). Pins 4 and 5 not connected. The cable-detect bridge of v0.4–v0.16 is dropped. |
 | H-5 | Verify on the physical base that GPIO39 and GPIO41 are not wired to anything (O-8). Update the RLC spec's pin table (App. C.1) and as-built panel description; spare base GPIOs reduce from 3 (38, 39, 41) to 1 (38). |
 
 ### A.3 Firmware changes
@@ -791,11 +797,11 @@ Add two optically isolated outputs to the RLC base on a new 4-pin panel socket: 
 |---|---|
 | F-1 | `pin_config.h` (base section): `PIN_CAM_TRIG` 39, `PIN_CAM_ARM` 41, `PIN_CAM_TRIG_ACTIVE` / `PIN_CAM_ARM_ACTIVE` 1 (active HIGH). |
 | F-2 | `rlc_config.h`: `CAM_TRIG_LEAD_MS` = 2000, `CAM_TRIG_POST_MS` = 3000, `CAM_TRIG_MAX_MS` = 10000, static assert `CAM_TRIG_LEAD_MS < PRE_FIRE_DELAY_MS`; `CAM_ARM_TICK_MS` = 50, idle pattern 100 ms on / 900 ms off, armed pattern 50 ms on / 50 ms off. |
-| F-3 | New module `rlc_cam_trig.c/.h`: `cam_trig_init()` (configure both outputs, drive LOW), `cam_trig_on_prefire_enter()`, `cam_trig_on_fire_pulse_end()`, `cam_trig_cancel()`, `cam_arm_set(bool armed)`. TRIG uses `esp_timer` one-shots; ARM is generated by one periodic `esp_timer` (`CAM_ARM_TICK_MS`) from a flag: armed pattern while `armed || trig_asserted`, idle pattern otherwise. The module only calls `gpio_set_level()`: no blocking calls, no radio, no inputs. |
-| F-4 | Base FSM hooks. TRIG: `cam_trig_on_prefire_enter()` on ARMED → PRE_FIRE; `cam_trig_on_fire_pulse_end()` on EVT_FIRE_PULSE_DONE; `cam_trig_cancel()` on every exit from PRE_FIRE other than to FIRING, on disarm, on entry to ERROR, and in the emergency-safe path. ARM: `cam_arm_set(true)` on IDLE → ARMED; `cam_arm_set(false)` on every transition into IDLE or ERROR (disarm, arm timeout, key off, link lost, abort, POST_FIRE → IDLE) and in the emergency-safe path. |
+| F-3 | New module `rlc_cam_trig.c/.h`: `cam_trig_init()` (configure both outputs, drive LOW), `cam_trig_on_prefire_enter()`, `cam_trig_on_firing_enter()`, `cam_trig_on_fire_pulse_end()`, `cam_trig_cancel()`, `cam_arm_set(bool armed)`. TRIG uses `esp_timer` one-shots; `cam_trig_on_firing_enter()` sets a `fired` flag, after which `cam_trig_cancel()` behaves like `cam_trig_on_fire_pulse_end()` (post timer, started once) instead of deasserting (rule in §8.5); ARM is generated by one periodic `esp_timer` (`CAM_ARM_TICK_MS`) from a flag: armed pattern while `armed || trig_asserted`, idle pattern otherwise. The module only calls `gpio_set_level()`: no blocking calls, no radio, no inputs. |
+| F-4 | Base FSM hooks. TRIG: `cam_trig_on_prefire_enter()` on ARMED → PRE_FIRE; `cam_trig_on_firing_enter()` on PRE_FIRE → FIRING; `cam_trig_on_fire_pulse_end()` on EVT_FIRE_PULSE_DONE (also when the pulse completes on link loss); `cam_trig_cancel()` on every other exit from PRE_FIRE or FIRING, on disarm, on entry to ERROR or LINK_LOST, and in the emergency-safe path (after FIRING it lets the post timer finish TRIG). ARM: `cam_arm_set(true)` on IDLE → ARMED; `cam_arm_set(false)` on every transition into IDLE, **LINK_LOST** or ERROR, and in the emergency-safe path. |
 | F-5 | The lead timer callback asserts TRIG **only if** the FSM is still in PRE_FIRE at expiry. |
 | F-6 | Hard cap: TRIG deasserted after `CAM_TRIG_MAX_MS` of continuous assertion, independent of FSM state. |
-| F-7 | `cam_trig_init()` runs early in boot, alongside relay initialisation, so both pins are driven LOW as soon as possible (the pull-downs cover the time before that). The ARM timer starts at the end of init, with the idle pattern. |
+| F-7 | `cam_trig_init()` runs early in boot, alongside relay initialisation, so both pins are driven LOW as soon as possible (the pull-downs cover the time before that). GPIO39/41 are JTAG pad pins (MTCK, MTDI); their pre-init state is to be confirmed by T-26. Even with an internal weak pull-up (≈ 45 kΩ) the 10 kΩ pull-down holds the line below ≈ 0.6 V, under the PC817 LED threshold, and a boot glitch is neither a 1 Hz nor a 10 Hz pattern. The ARM timer starts at the end of init, with the idle pattern. |
 | F-8 | If the ARM timer cannot be created or started, log it and leave ARM LOW. The CRIG then reads "not connected" and ignores TRIG: photographs are lost, the launch is unaffected. |
 
 ### A.4 Safety argument
@@ -819,7 +825,8 @@ T-21 to T-27 (§14.2), to be added to the RLC test specification with RLC-side I
 | 0.1 | 2026-09-27 | Initial draft |
 | 0.2 | 2026-09-27 | Added node power options, closed O-4, added O-7 |
 | 0.3 | 2026-09-27 | Two scenarios (RLC automatic / third-party manual); CRIG remote as the node's only controller; wired RLC interface with power from the base battery and single TRIG line; default channel changed to 1 (RLC on 11), O-2 closed; camera wake handled by the node only; no pad matching; integration tests; Appendix A RLC change request |
-| 0.17 | 2026-11-03 | RLC interface reworked (§8 rewritten, Appendix A rewritten): second optocoupler and signal **ARM** (base GPIO41 → remote IO6) next to TRIG (base GPIO39 → remote IO5); GX12-4 pinout TRIG+ / ARM+ / COM− / n.c.; DET loop dropped; ARM heartbeat patterns (none = not connected, 1 Hz = connected, 10 Hz = armed) with decoder rules (§8.3); TRIG accepted only while ARM = armed (§8.6, FR-R02, FR-R10); RLC status NONE / CONNECTED / ARMED / LOST (FR-R12); PREPARE flag in HEARTBEAT/SHOOT (FR-R15, §7.3) and node camera preparation (FR-N19, §6.3); new parameters `t_arm_lost`, `t_prepare_wake`, `t_prepare_keepalive`; tests T-12, T-13, T-15, T-21…T-23, T-25 revised, T-17…T-19, T-26, T-27 added; O-8 updated (GPIO39/41 chosen), O-20 added; hand-off `docs/RLC_change_request_CRIG_v0.17.md` |
+| 0.18 | 2026-11-03 | RLC interface connector: GX12-4 replaced by a **5-pin DIN 180°** pair from Gotron (AD322 female chassis socket on base and remote, AD302 male plastic cable plug on both cable ends; ≈ €5.60), pinout 1 = TRIG+, 2 = COM− (centre), 3 = ARM+, 4/5 n.c.; weatherproofing dropped (sheltered placement, safe failure on unplug), straight-through cable rule (§8.2); radio channel rule made explicit (RR-02, RR-05, §7.5: RLC verified on channel 11, CRIG channel 1, fallback 6, ≥ 5 channels apart); RLC review answers (§8.5, App. A F-3/F-4/F-7): once FIRING is entered TRIG always ends via the post timer (incl. pulse completed on link loss and mid-pulse aborts), ARM 1 Hz in LINK_LOST too, `cam_trig_on_firing_enter()` hook, JTAG-pin boot note; T-12, T-17, T-25, H-1, H-3, H-4, O-9, §9.2, §12.2 updated |
+| 0.17 | 2026-11-03 | RLC interface reworked (§8 rewritten, Appendix A rewritten): second optocoupler and signal **ARM** (base GPIO41 → remote IO6) next to TRIG (base GPIO39 → remote IO5); GX12-4 pinout TRIG+ / ARM+ / COM− / n.c.; DET loop dropped; ARM heartbeat patterns (none = not connected, 1 Hz = connected, 10 Hz = armed) with decoder rules (§8.3); TRIG accepted only while ARM = armed (§8.6, FR-R02, FR-R10); RLC status NONE / CONNECTED / ARMED / LOST (FR-R12); PREPARE flag in HEARTBEAT/SHOOT (FR-R15, §7.3) and node camera preparation (FR-N19, §6.3); new parameters `t_arm_lost`, `t_prepare_wake`, `t_prepare_keepalive`; tests T-12, T-13, T-15, T-21…T-23, T-25 revised, T-17…T-19, T-26, T-27 added; O-8 updated (GPIO39/41 chosen), O-20 added; hand-off `docs/RLC_change_request_CRIG.md` |
 | 0.16 | 2026-11-03 | Remote as built (§4, §9.2, FR-R13, §11.2, §12.2; schematic v0.2): 1S protection board + power-bank charger/5 V boost module replace TP4056 + boost (watch points listed); plain SHOOT button + two 3 mm LEDs (O-18 closed); RGB LED fixed on GPIO48 (O-19 closed). Hardware test `firmware/remote_hwtest`: MCU, battery sense, buzzer, motor, RGB LED, SHOOT button, green/red LEDs (after resoldering, they were fitted reversed) and OLED (0x3C on IO8/IO9, after repairing a lifted trace on the module) all pass; power-bank module: no light-load auto-off, runs while charging, 5 V starts by itself; TRIG/DET untested until J1 is wired |
 | 0.15 | 2026-11-01 | Remote simplified: **no arming** (principle 8) — ARM switch, TEST and MENU buttons and the green/amber/red LEDs removed; DISARMED/ARMED states replaced by IDLE (§9.1); `arm_req`, TEST, CFG_GET/SET, JOG and CFG_VAL removed from the protocol (§7.3); config, calibration and test cycles on the node's USB console; a short SHOOT tap replaces TEST in §4; `t_link_lost_disarm` → `t_link_lost` (2 s, indication only); camera power control follows the link (§6.3). Remote hardware: ESP32-S3-DevKitC-1U with external antenna, on-board RGB LED as status indicator (FR-R14), SHOOT ring driven directly from GPIOs, same buzzer as the node, power path 18650 → TP4056 with protection → switch → 5 V boost → 5V0 (§11.2, ~16 h), NPN driver for the vibration motor; draft remote schematic (§12.2). FR-R04, FR-R05 and T-08 removed; O-5 closed; O-17, O-18 updated; O-19 added |
 | 0.14 | 2026-10-23 | Stand-by bench results (§6.2): FULL alone never fires, HALF+FULL always, also after 10 min standby; keep-alive made optional and off by default (FR-N03, `t_keepalive_interval` = 0, §4, §6.3, §10, §11.3, T-03, T-31, O-3); camera does not enter standby while USB is connected (§10); J2 pin 2 / PW-01 / O-12: S-line sniffer and protocol research |

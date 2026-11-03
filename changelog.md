@@ -59,7 +59,55 @@ IO6 (RLC_DET) and J1 (GX12-4) not wired yet.
 
 ### 8. Notes
 - The autoresume guard blocked its own `off` command at 97 % (it runs through a tool call); David ran `! python3 ~/.claude/hooks/autoresume.py off`. The guard is still **off** on this machine — turn it back on with `/autoresume on`.
-- Next: wire J1 + IO6 and test TRIG/DET with the same firmware (no reflash needed), then the real remote firmware.
+- Next (superseded by §14 below): wire J1 + IO6, then the real remote firmware.
+
+### 9. RLC interface rework: ARM line (spec v0.17)
+- Owner wants the RLC's arm state to reach the CRIG, so it can switch the camera on and wake it before TRIG, with the cable kept at 4 wires max. Serial over the TRIG opto was considered (fail-safe, but more RLC code and a cross-project protocol); owner chose a **second optocoupler + IO pin**.
+- **ARM heartbeat:** no pulses = not connected / hung, 1 Hz (100/900 ms) = connected, 10 Hz (50/50 ms) = armed. Steady high was rejected (a crashed base would look armed).
+- **TRIG gating:** TRIG is accepted only while ARM decodes as armed, so a stuck TRIG stops within about 0.3 s.
+- **DET loop dropped:** the heartbeat replaces cable detect.
+- **CRIG side:** RLC status NONE / CONNECTED / ARMED / LOST; PREPARE flag in HEARTBEAT/SHOOT (FR-R15); node camera preparation FR-N19 (camera on + HALF wake, keep-alive every 4 s).
+- **RLC base pins:** GPIO39 = TRIG, GPIO41 = ARM. Checked against RLC `pin_config.h` (base uses 1, 2, 4–18, 21, 40, 42, 47, 48), the DevKitC-1 N16R8 reserved pins, and RLC spec App. C.1 (spares 38/39/41). GPIO38 stays spare (on-board RGB on v1.1 boards; the base is v1.0, LED on GPIO48).
+- **Remote:** IO6 = ARM_IN (second PC817, U6). Schematic v0.3 has two optocouplers.
+- **Hand-off for the RLC Claude session:** `docs/RLC_change_request_CRIG.md` (first named `…_v0.17.md`).
+- First commit and new public repo: https://github.com/steemandavid/D3000-rocket-photography (`ec64e54`).
+
+### 10. Connector: 5-pin DIN 180° instead of GX12-4 (spec v0.18)
+- Gotron options compared:
+  - M12-A (AD784 panel + AD781 plug): ≈ €36
+  - Hirschmann CA (AD751/AD753): ≈ €24
+  - **5-pin DIN 180° plastic: AD322 female chassis socket + AD302 male cable plug, ≈ €5.60** — chosen
+  - AD323 (270° socket): rejected, the only 270° cable plug is Lumberg AD382 (€4.87), ≈ €11 in total
+- **Pinout:** 1 = TRIG+, 2 = COM− (centre pin), 3 = ARM+, 4/5 n.c. Straight-through cable; ready-made DIN audio cables may swap 1↔3.
+- Not waterproof and no lock: accepted (sheltered placement; an unplugged cable fails safe and shows RLC LOST).
+- Updated: spec §8.2, §9.2, §12.2, T-12/17/25, App. A H-1/H-3/H-4, O-9, hand-off, schematic v0.4, `gotron_bestellijst.md` (new RLC-interface section ≈ €5.82).
+
+### 11. RLC review answers (spec v0.18 §8.5, App. A)
+1. **Pulse completed on link loss:** handled as a normal pulse end. ARM stays 10 Hz while TRIG is HIGH (the RLC session's "drop to 1 Hz" would have made the CRIG ignore TRIG).
+2. **Mid-pulse aborts:** owner decided to **keep shooting**. Once FIRING is entered, TRIG always ends via the post timer; new hook `cam_trig_on_firing_enter()` plus a `fired` flag makes `cam_trig_cancel()` safe to call everywhere.
+3. **LINK_LOST:** `do_enter_link_lost()` gets `cam_arm_set(false)`.
+4. **Physical checks:** O-8 (GPIO39/41 continuity) for David. Also check for leftover wiring on GPIO41 from the RLC v1.7 continuity-MOSFET design, which was later dropped. O-9 is the DIN socket location.
+5. **GPIO39/41 boot state** (JTAG pads): harmless. The 10 kΩ pull-down beats an internal weak pull-up (< 0.6 V at the opto). Verified by T-26.
+
+### 12. Radio channels
+- **RLC:** verified on channel 11 (`components/rlc_common/include/rlc_config.h:313` `WIFI_CHANNEL 11`, `rlc_espnow.c:170` with `WIFI_SECOND_CHAN_NONE`, no LR). The RLC spec allows changing it after a field survey.
+- **CRIG: channel 1** (50 MHz from 11; the remote sits within 1 m of the base), fallback 6. Rule: ≥ 5 channels from the RLC channel (RR-02). Reduce the remote's TX power if T-20 shows an effect on the RLC (RR-05). §7.5 updated.
+
+### 13. Documentation (since the first commit)
+
+| File | Change |
+|---|---|
+| `camera-rig-functional-spec.md` | v0.17 → v0.18 (§7.1, §7.5, §8, App. A, tests, parameters, O-8/O-9/O-20) |
+| `docs/RLC_change_request_CRIG.md` | Renamed; DIN connector; review answers (§8) |
+| `crig_remote_schematic.*`, `tools/remote_schematic.py` | v0.3 (two optocouplers), v0.4 (DIN-5 J1) |
+| `CRIG_session_handoff.md` | D15 superseded; D31–D34 added; diagram, O-9 |
+| `gotron_bestellijst.md` | RLC-interface order section |
+| `firmware/remote_hwtest/README.md` | IO6 = ARM (not read yet) |
+
+### 14. Next
+- **Remote:** fit U6 (PC817 + 1N4148, 10 kΩ / 10 nF) on IO6, and the DIN socket. Extend `remote_hwtest` to decode the ARM pattern.
+- **RLC:** David does the O-8 continuity check, decides O-9, and hands the updated `docs/RLC_change_request_CRIG.md` to the RLC session.
+- The autoresume guard is still **off** (`/autoresume on`).
 
 ## 2026-11-01 — Remote simplified (no arming), remote hardware defined, spec v0.15, draft remote schematic
 

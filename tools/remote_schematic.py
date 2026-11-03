@@ -49,8 +49,8 @@ def switch_no(x, y, label=None):
 
 
 begin(W, H, 'CRIG remote — schematic',
-      'Rocket liftoff camera rig · v0.3 2026-11-03 (as built + ARM line, spec v0.17) · hardware test: MCU, VBAT, buzzer, motor, RGB, SHOOT, LEDs, OLED pass; '
-      'J1 / TRIG / DET not wired yet · spec v0.17 §8, §9.2, §11.2, §12.2')
+      'Rocket liftoff camera rig · v0.4 2026-11-03 (as built + ARM line, DIN-5 connector, spec v0.18) · hardware test: MCU, VBAT, buzzer, motor, RGB, SHOOT, LEDs, OLED pass; '
+      'J1 / TRIG / DET not wired yet · spec v0.18 §8, §9.2, §11.2, §12.2')
 
 # =================================================================== A · POWER
 frame(20, 60, 600, 450, 'A · POWER (18650, 1S PROTECTION, CHARGE + 5 V BOOST, SENSE)')
@@ -155,11 +155,11 @@ lines(660, 818, ['GPIO 1 is ADC1 (works with ESP-NOW active).',
                  'IO48 = on-board RGB LED. IO38 not used.'], 10, fill=GREY, italic=True)
 
 # =================================================================== C · RLC INTERFACE
-frame(1040, 60, 850, 450, 'C · RLC INTERFACE (GX12-4: TRIG + ARM, two optocouplers)')
+frame(1040, 60, 850, 450, 'C · RLC INTERFACE (5-pin DIN 180°: TRIG + ARM, two optocouplers)')
 rect(1070, 96, 130, 314)
-text(1135, 116, 'J1  GX12-4', 13, 'middle', True)
-text(1135, 130, 'panel socket', 10, 'middle', fill=GREY)
-for y, sname in ((150, '1 TRIG+  ← GPIO39'), (270, '2 ARM+  ← GPIO41'), (360, '3 COM−  ← GND'), (392, '4 n.c.')):
+text(1135, 116, 'J1  DIN-5 180°', 13, 'middle', True)
+text(1135, 130, 'AD322 female chassis', 10, 'middle', fill=GREY)
+for y, sname in ((150, '1 TRIG+  ← GPIO39'), (270, '3 ARM+  ← GPIO41'), (360, '2 COM−  ← GND'), (392, '4, 5 n.c.')):
     text(1078, y + 4, sname, 10, fill=GREY)
 # isolation barrier
 line(1440, 100, 1440, 420, C_ISO, 1.5, '8 5')
@@ -211,7 +211,7 @@ def opto(ya, pin_label, uname, dname, net, gpio, note):
 
 opto(150, '470 Ω in base', 'U4 PC817', 'D1', 'TRIG_IN', 'IO5', 'LOW = TRIG on')
 opto(270, '470 Ω in base', 'U6 PC817', 'D3', 'ARM_IN', 'IO6', 'pattern: none / 1 Hz / 10 Hz')
-lines(1060, 446, ['Pins 1–3 reach only the two PC817 LEDs and D1/D3: no copper path to the remote (IF-05, T-15). Pin 4 n.c.',
+lines(1060, 446, ['Pins 1–3 reach only the two PC817 LEDs and D1/D3: no copper path to the remote (IF-05, T-15). Cable: AD302 both ends, straight through.',
                   'ARM (§8.3): no pulses = RLC not connected / hung; 1 Hz (100 ms on) = connected; 10 Hz = armed → PREPARE.',
                   'TRIG is accepted only while ARM decodes as armed (§8.6). Filters 10 k × 10 n ≈ 0.1 ms.'],
       10, fill=GREY, italic=True)
