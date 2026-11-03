@@ -1,0 +1,6 @@
+# Long-idle stand-by test 2026-10-16, firmware/optotest + standby10.py, camera USB UNPLUGGED (with USB attached the screen stays on = no stand-by). Camera clock = PC - 1 h 00 min 15 s.
+# pc_time	test	frames	files (EXIF DateTimeOriginal.SubSec)
+14:55:56	CAL HALF1000+FULL500 awake	2	DSC_4707 13:55:41.0, DSC_4708 13:55:41.5
+15:06:01	B HALF100+FULL100 after 600 s idle	1	DSC_4709 14:05:44.5
+15:16:04	F HALF1000+FULL500 after 600 s idle	2	DSC_4710 14:15:48.5, DSC_4711 14:15:49.0
+# Discarded (aborted run with USB attached, camera did not enter stand-by): DSC_4704/4705 (CAL 14:43:43), DSC_4706 (B 14:53:47)

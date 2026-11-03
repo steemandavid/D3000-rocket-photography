@@ -1,0 +1,405 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1910 1000" width="1910" height="1000" font-family="Helvetica, Arial, sans-serif">
+<rect width="1910" height="1000" fill="white"/>
+<text x="20" y="30" font-size="22" text-anchor="start" font-weight="bold" fill="#1f2430">CRIG camera node — schematic</text>
+<text x="20" y="48" font-size="12" text-anchor="start" font-weight="normal" fill="#6b7280">Nikon D3000 wired release (option B) · DRAFT v0.3 · 2026-10-15 · camera interface bench-verified (HALF, FULL, PWR) · spec v0.13 §6.2/§6.3, §11.3, §12.1</text>
+<rect x="20" y="60" width="680" height="720" rx="8" fill="none" stroke="#9aa3b2" stroke-width="1.5" stroke-dasharray="6 4"/>
+<text x="32" y="80" font-size="14" text-anchor="start" font-weight="bold" fill="#6b7280">A · POWER, CAMERA SUPPLY, SENSE, STATUS LED</text>
+<rect x="40" y="105" width="120" height="70" rx="4" fill="none" stroke="#1f2430" stroke-width="2"/>
+<text x="100" y="130" font-size="13" text-anchor="middle" font-weight="bold" fill="#1f2430">PACK 2S2P</text>
+<text x="100" y="146" font-size="11" text-anchor="middle" font-weight="normal" fill="#1f2430">4 × 18650</text>
+<text x="100" y="160" font-size="11" text-anchor="middle" font-weight="normal" fill="#1f2430">LS18650-3, ≈48 Wh</text>
+<line x1="160" y1="140" x2="200" y2="140" stroke="#1f2430" stroke-width="2" stroke-linecap="round"/>
+<text x="180" y="132" font-size="10" text-anchor="middle" font-weight="normal" fill="#6b7280">B+</text>
+<rect x="200" y="105" width="120" height="70" rx="4" fill="none" stroke="#1f2430" stroke-width="2"/>
+<text x="260" y="130" font-size="13" text-anchor="middle" font-weight="bold" fill="#1f2430">BMS 2S</text>
+<text x="260" y="146" font-size="11" text-anchor="middle" font-weight="normal" fill="#1f2430">≥ 8 A</text>
+<text x="260" y="160" font-size="11" text-anchor="middle" font-weight="normal" fill="#1f2430">cutoff 2.8 V/cell</text>
+<line x1="260" y1="175" x2="260" y2="195" stroke="#1f2430" stroke-width="2" stroke-linecap="round"/>
+<line x1="260" y1="195" x2="260" y2="203" stroke="#1f2430" stroke-width="2" stroke-linecap="round"/>
+<line x1="250" y1="203" x2="270" y2="203" stroke="#1f2430" stroke-width="2" stroke-linecap="round"/>
+<line x1="254" y1="207" x2="266" y2="207" stroke="#1f2430" stroke-width="2" stroke-linecap="round"/>
+<line x1="258" y1="211" x2="262" y2="211" stroke="#1f2430" stroke-width="2" stroke-linecap="round"/>
+<text x="100" y="192" font-size="10" text-anchor="middle" font-weight="normal" fill="#6b7280">JST-XH balance lead to BMS</text>
+<line x1="320" y1="140" x2="350" y2="140" stroke="#1f2430" stroke-width="2" stroke-linecap="round"/>
+<line x1="350" y1="140" x2="360.0" y2="140" stroke="#1f2430" stroke-width="2" stroke-linecap="round"/>
+<line x1="400.0" y1="140" x2="410" y2="140" stroke="#1f2430" stroke-width="2" stroke-linecap="round"/>
+<rect x="360.0" y="133" width="40" height="14" rx="0" fill="white" stroke="#1f2430" stroke-width="2"/>
+<line x1="360.0" y1="140" x2="400.0" y2="140" stroke="#1f2430" stroke-width="1.5" stroke-linecap="round"/>
+<text x="380.0" y="128" font-size="11" text-anchor="middle" font-weight="normal" fill="#1f2430">F1 2.5 A slow (Z2T2,5A)</text>
+<line x1="410" y1="140" x2="440" y2="140" stroke="#1f2430" stroke-width="2" stroke-linecap="round"/>
+<line x1="440" y1="140" x2="452" y2="140" stroke="#1f2430" stroke-width="2" stroke-linecap="round"/>
+<line x1="488" y1="140" x2="500" y2="140" stroke="#1f2430" stroke-width="2" stroke-linecap="round"/>
+<line x1="452" y1="140" x2="488" y2="126" stroke="#1f2430" stroke-width="2" stroke-linecap="round"/>
+<circle cx="452" cy="140" r="3" fill="white" stroke="#1f2430" stroke-width="2"/>
+<circle cx="488" cy="140" r="3" fill="white" stroke="#1f2430" stroke-width="2"/>
+<text x="470.0" y="162" font-size="11" text-anchor="middle" font-weight="normal" fill="#1f2430">SW1 main switch</text>
+<line x1="500" y1="140" x2="530" y2="140" stroke="#1f2430" stroke-width="2" stroke-linecap="round"/>
+<circle cx="530" cy="140" r="3.5" fill="#1f2430"/>
+<line x1="530" y1="140" x2="560" y2="140" stroke="#1f2430" stroke-width="2" stroke-linecap="round"/>
+<text x="565" y="144" font-size="12" text-anchor="start" font-weight="bold" fill="#1f2430">+VBAT 6.0–8.4 V</text>
+<line x1="530" y1="140" x2="530" y2="260" stroke="#1f2430" stroke-width="2" stroke-linecap="round"/>
+<circle cx="530" cy="200" r="3.5" fill="#1f2430"/>
+<line x1="530" y1="200" x2="495" y2="200" stroke="#1f2430" stroke-width="2" stroke-linecap="round"/>
+<line x1="495" y1="200" x2="495" y2="216.0" stroke="#1f2430" stroke-width="2" stroke-linecap="round"/>
+<line x1="495" y1="224.0" x2="495" y2="240" stroke="#1f2430" stroke-width="2" stroke-linecap="round"/>
+<line x1="485" y1="216.0" x2="505" y2="216.0" stroke="#1f2430" stroke-width="2" stroke-linecap="round"/>
+<line x1="485" y1="224.0" x2="505" y2="224.0" stroke="#1f2430" stroke-width="2" stroke-linecap="round"/>
+<text x="481" y="224.0" font-size="11" text-anchor="end" font-weight="normal" fill="#1f2430">C1 100 µF</text>
+<line x1="495" y1="240" x2="495" y2="248" stroke="#1f2430" stroke-width="2" stroke-linecap="round"/>
+<line x1="485" y1="248" x2="505" y2="248" stroke="#1f2430" stroke-width="2" stroke-linecap="round"/>
+<line x1="489" y1="252" x2="501" y2="252" stroke="#1f2430" stroke-width="2" stroke-linecap="round"/>
+<line x1="493" y1="256" x2="497" y2="256" stroke="#1f2430" stroke-width="2" stroke-linecap="round"/>
+<rect x="450" y="260" width="160" height="80" rx="4" fill="none" stroke="#1f2430" stroke-width="2"/>
+<text x="530" y="290" font-size="12" text-anchor="middle" font-weight="bold" fill="#1f2430">U2 buck → 5.0 V</text>
+<text x="530" y="306" font-size="11" text-anchor="middle" font-weight="normal" fill="#1f2430">MP1584, ≥ 1 A</text>
+<text x="530" y="322" font-size="10" text-anchor="middle" font-weight="normal" fill="#6b7280">set to 5.0 V first</text>
+<text x="536" y="275" font-size="10" text-anchor="start" font-weight="normal" fill="#6b7280">VIN</text>
+<text x="604" y="275" font-size="10" text-anchor="end" font-weight="normal" fill="#6b7280">OUT</text>
+<text x="536" y="335" font-size="10" text-anchor="start" font-weight="normal" fill="#6b7280">GND</text>
+<line x1="530" y1="340" x2="530" y2="358" stroke="#1f2430" stroke-width="2" stroke-linecap="round"/>
+<line x1="530" y1="358" x2="530" y2="366" stroke="#1f2430" stroke-width="2" stroke-linecap="round"/>
+<line x1="520" y1="366" x2="540" y2="366" stroke="#1f2430" stroke-width="2" stroke-linecap="round"/>
+<line x1="524" y1="370" x2="536" y2="370" stroke="#1f2430" stroke-width="2" stroke-linecap="round"/>
+<line x1="528" y1="374" x2="532" y2="374" stroke="#1f2430" stroke-width="2" stroke-linecap="round"/>
+<line x1="610" y1="300" x2="665" y2="300" stroke="#1f2430" stroke-width="2" stroke-linecap="round"/>
+<circle cx="635" cy="300" r="3.5" fill="#1f2430"/>
+<line x1="635" y1="300" x2="635" y2="316.0" stroke="#1f2430" stroke-width="2" stroke-linecap="round"/>
+<line x1="635" y1="324.0" x2="635" y2="340" stroke="#1f2430" stroke-width="2" stroke-linecap="round"/>
+<line x1="625" y1="316.0" x2="645" y2="316.0" stroke="#1f2430" stroke-width="2" stroke-linecap="round"/>
+<line x1="625" y1="324.0" x2="645" y2="324.0" stroke="#1f2430" stroke-width="2" stroke-linecap="round"/>
+<text x="649" y="324.0" font-size="11" text-anchor="start" font-weight="normal" fill="#1f2430">C2 47 µF</text>
+<line x1="635" y1="340" x2="635" y2="348" stroke="#1f2430" stroke-width="2" stroke-linecap="round"/>
+<line x1="625" y1="348" x2="645" y2="348" stroke="#1f2430" stroke-width="2" stroke-linecap="round"/>
+<line x1="629" y1="352" x2="641" y2="352" stroke="#1f2430" stroke-width="2" stroke-linecap="round"/>
+<line x1="633" y1="356" x2="637" y2="356" stroke="#1f2430" stroke-width="2" stroke-linecap="round"/>
+<text x="668" y="304" font-size="12" text-anchor="start" font-weight="bold" fill="#1f2430">+5V</text>
+<text x="40" y="400" font-size="12" text-anchor="start" font-weight="bold" fill="#6b7280">CAMERA SUPPLY</text>
+<text x="40" y="424" font-size="11" text-anchor="start" font-weight="bold" fill="#1f2430">+VBAT (behind SW1)</text>
+<line x1="40" y1="432" x2="245" y2="432" stroke="#1f2430" stroke-width="2" stroke-linecap="round"/>
+<rect x="245" y="412" width="70" height="84" rx="4" fill="none" stroke="#1f2430" stroke-width="2"/>
+<text x="280" y="436" font-size="12" text-anchor="middle" font-weight="bold" fill="#1f2430">J2</text>
+<text x="280" y="452" font-size="10" text-anchor="middle" font-weight="normal" fill="#6b7280">3-pin</text>
+<text x="280" y="464" font-size="10" text-anchor="middle" font-weight="normal" fill="#6b7280">2.54 mm</text>
+<text x="251" y="428" font-size="9" text-anchor="start" font-weight="normal" fill="#6b7280">1</text>
+<text x="251" y="474" font-size="9" text-anchor="start" font-weight="normal" fill="#6b7280">2</text>
+<text x="251" y="492" font-size="9" text-anchor="start" font-weight="normal" fill="#6b7280">3</text>
+<line x1="245" y1="462" x2="200" y2="462" stroke="#1f2430" stroke-width="2" stroke-linecap="round"/>
+<line x1="140" y1="462" x2="152.0" y2="462" stroke="#1f2430" stroke-width="2" stroke-linecap="round"/>
+<line x1="188.0" y1="462" x2="200" y2="462" stroke="#1f2430" stroke-width="2" stroke-linecap="round"/>
+<rect x="152.0" y="455" width="36" height="14" rx="0" fill="white" stroke="#1f2430" stroke-width="2"/>
+<text x="170.0" y="452" font-size="11" text-anchor="middle" font-weight="normal" fill="#1f2430">RS (DNP)</text>
+<line x1="100" y1="462" x2="140" y2="462" stroke="#1f2430" stroke-width="2" stroke-linecap="round"/>
+<text x="60" y="466" font-size="11" text-anchor="start" font-weight="bold" fill="#2563eb">BLU</text>
+<line x1="245" y1="485" x2="230" y2="485" stroke="#1f2430" stroke-width="2" stroke-linecap="round"/>
+<line x1="230" y1="485" x2="230" y2="500" stroke="#1f2430" stroke-width="2" stroke-linecap="round"/>
+<line x1="230" y1="500" x2="230" y2="508" stroke="#1f2430" stroke-width="2" stroke-linecap="round"/>
+<line x1="220" y1="508" x2="240" y2="508" stroke="#1f2430" stroke-width="2" stroke-linecap="round"/>
+<line x1="224" y1="512" x2="236" y2="512" stroke="#1f2430" stroke-width="2" stroke-linecap="round"/>
+<line x1="228" y1="516" x2="232" y2="516" stroke="#1f2430" stroke-width="2" stroke-linecap="round"/>
+<polyline points="315,432 345,432" fill="none" stroke="#dc2626" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"/>
+<text x="351" y="436" font-size="11" text-anchor="start" font-weight="normal" fill="#1f2430">red → camera +</text>
+<polyline points="315,462 345,462" fill="none" stroke="#8b5a2b" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"/>
+<text x="351" y="466" font-size="11" text-anchor="start" font-weight="normal" fill="#1f2430">brown → S</text>
+<polyline points="315,485 345,485" fill="none" stroke="#111111" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"/>
+<text x="351" y="489" font-size="11" text-anchor="start" font-weight="normal" fill="#1f2430">black → camera −</text>
+<text x="40" y="548" font-size="11" text-anchor="start" font-weight="normal" fill="#6b7280" font-style="italic">One fuse only (F1, behind the BMS). Camera and buck are in</text>
+<text x="40" y="562" font-size="11" text-anchor="start" font-weight="normal" fill="#6b7280" font-style="italic">parallel behind SW1: a camera short also takes the node down.</text>
+<text x="440" y="400" font-size="12" text-anchor="start" font-weight="bold" fill="#6b7280">PACK VOLTAGE SENSE</text>
+<text x="480" y="424" font-size="11" text-anchor="middle" font-weight="bold" fill="#1f2430">+VBAT</text>
+<line x1="480" y1="428" x2="480" y2="440" stroke="#1f2430" stroke-width="2" stroke-linecap="round"/>
+<line x1="480" y1="440" x2="480" y2="442.0" stroke="#1f2430" stroke-width="2" stroke-linecap="round"/>
+<line x1="480" y1="478.0" x2="480" y2="480" stroke="#1f2430" stroke-width="2" stroke-linecap="round"/>
+<rect x="473" y="442.0" width="14" height="36" rx="0" fill="white" stroke="#1f2430" stroke-width="2"/>
+<text x="468" y="464.0" font-size="11" text-anchor="end" font-weight="normal" fill="#1f2430">R1 100 k</text>
+<line x1="480" y1="480" x2="480" y2="500" stroke="#1f2430" stroke-width="2" stroke-linecap="round"/>
+<circle cx="480" cy="500" r="3.5" fill="#1f2430"/>
+<line x1="480" y1="500" x2="480" y2="502.0" stroke="#1f2430" stroke-width="2" stroke-linecap="round"/>
+<line x1="480" y1="538.0" x2="480" y2="540" stroke="#1f2430" stroke-width="2" stroke-linecap="round"/>
+<rect x="473" y="502.0" width="14" height="36" rx="0" fill="white" stroke="#1f2430" stroke-width="2"/>
+<text x="468" y="524.0" font-size="11" text-anchor="end" font-weight="normal" fill="#1f2430">R2 47 k</text>
+<line x1="480" y1="540" x2="480" y2="548" stroke="#1f2430" stroke-width="2" stroke-linecap="round"/>
+<line x1="470" y1="548" x2="490" y2="548" stroke="#1f2430" stroke-width="2" stroke-linecap="round"/>
+<line x1="474" y1="552" x2="486" y2="552" stroke="#1f2430" stroke-width="2" stroke-linecap="round"/>
+<line x1="478" y1="556" x2="482" y2="556" stroke="#1f2430" stroke-width="2" stroke-linecap="round"/>
+<line x1="480" y1="500" x2="570" y2="500" stroke="#1f2430" stroke-width="2" stroke-linecap="round"/>
+<circle cx="530" cy="500" r="3.5" fill="#1f2430"/>
+<line x1="530" y1="500" x2="530" y2="514.0" stroke="#1f2430" stroke-width="2" stroke-linecap="round"/>
+<line x1="530" y1="522.0" x2="530" y2="536" stroke="#1f2430" stroke-width="2" stroke-linecap="round"/>
+<line x1="520" y1="514.0" x2="540" y2="514.0" stroke="#1f2430" stroke-width="2" stroke-linecap="round"/>
+<line x1="520" y1="522.0" x2="540" y2="522.0" stroke="#1f2430" stroke-width="2" stroke-linecap="round"/>
+<text x="544" y="522.0" font-size="11" text-anchor="start" font-weight="normal" fill="#1f2430">C3 100 nF</text>
+<line x1="530" y1="536" x2="530" y2="544" stroke="#1f2430" stroke-width="2" stroke-linecap="round"/>
+<line x1="520" y1="544" x2="540" y2="544" stroke="#1f2430" stroke-width="2" stroke-linecap="round"/>
+<line x1="524" y1="548" x2="536" y2="548" stroke="#1f2430" stroke-width="2" stroke-linecap="round"/>
+<line x1="528" y1="552" x2="532" y2="552" stroke="#1f2430" stroke-width="2" stroke-linecap="round"/>
+<text x="576" y="504" font-size="12" text-anchor="start" font-weight="bold" fill="#1f2430">VBAT_SENSE → IO1</text>
+<text x="576" y="488" font-size="10" text-anchor="start" font-weight="normal" fill="#6b7280">2.69 V at 8.4 V</text>
+<text x="40" y="610" font-size="12" text-anchor="start" font-weight="bold" fill="#6b7280">STATUS LED</text>
+<rect x="40" y="625" width="600" height="110" rx="4" fill="none" stroke="#1f2430" stroke-width="2"/>
+<text x="55" y="650" font-size="12" text-anchor="start" font-weight="bold" fill="#1f2430">On-board WS2812 RGB LED of U1 (data on IO48 on a v1.0 board, IO38 on v1.1)</text>
+<text x="55" y="672" font-size="11" text-anchor="start" font-weight="normal" fill="#1f2430">No external parts. Patterns per §9.3, same driver approach as the RLC.</text>
+<text x="55" y="690" font-size="11" text-anchor="start" font-weight="normal" fill="#1f2430">The LED sits inside the enclosure: use a small light pipe or window and keep</text>
+<text x="55" y="705" font-size="11" text-anchor="start" font-weight="normal" fill="#1f2430">it out of the lens view (no flare, not in frame). Check the board revision first.</text>
+<rect x="710" y="60" width="440" height="720" rx="8" fill="none" stroke="#9aa3b2" stroke-width="1.5" stroke-dasharray="6 4"/>
+<text x="722" y="80" font-size="14" text-anchor="start" font-weight="bold" fill="#6b7280">B · MCU (ESP32-S3 dev board)</text>
+<rect x="940" y="140" width="160" height="560" rx="6" fill="none" stroke="#1f2430" stroke-width="2"/>
+<text x="1020" y="340" font-size="15" text-anchor="middle" font-weight="bold" fill="#1f2430">U1</text>
+<text x="1020" y="358" font-size="12" text-anchor="middle" font-weight="normal" fill="#1f2430">ESP32-S3-DevKitC-1</text>
+<text x="1020" y="374" font-size="11" text-anchor="middle" font-weight="normal" fill="#6b7280">WROOM-1 N16R8</text>
+<text x="1020" y="390" font-size="11" text-anchor="middle" font-weight="normal" fill="#6b7280">same board as the RLC</text>
+<text x="948" y="184" font-size="11" text-anchor="start" font-weight="normal" fill="#6b7280">5V0</text>
+<text x="948" y="424" font-size="11" text-anchor="start" font-weight="normal" fill="#6b7280">IO1</text>
+<text x="1092" y="204" font-size="11" text-anchor="end" font-weight="normal" fill="#6b7280">IO4</text>
+<text x="1092" y="264" font-size="11" text-anchor="end" font-weight="normal" fill="#6b7280">IO5</text>
+<text x="1092" y="324" font-size="11" text-anchor="end" font-weight="normal" fill="#6b7280">IO6</text>
+<text x="948" y="596" font-size="11" text-anchor="start" font-weight="normal" fill="#6b7280">IO15</text>
+<line x1="940" y1="592" x2="838" y2="592" stroke="#1f2430" stroke-width="2" stroke-linecap="round"/>
+<circle cx="824" cy="592" r="14" fill="white" stroke="#1f2430" stroke-width="2"/>
+<text x="829" y="588" font-size="11" text-anchor="middle" font-weight="bold" fill="#1f2430">+</text>
+<line x1="810" y1="592" x2="790" y2="592" stroke="#1f2430" stroke-width="2" stroke-linecap="round"/>
+<line x1="790" y1="592" x2="790" y2="600" stroke="#1f2430" stroke-width="2" stroke-linecap="round"/>
+<line x1="790" y1="600" x2="790" y2="608" stroke="#1f2430" stroke-width="2" stroke-linecap="round"/>
+<line x1="780" y1="608" x2="800" y2="608" stroke="#1f2430" stroke-width="2" stroke-linecap="round"/>
+<line x1="784" y1="612" x2="796" y2="612" stroke="#1f2430" stroke-width="2" stroke-linecap="round"/>
+<line x1="788" y1="616" x2="792" y2="616" stroke="#1f2430" stroke-width="2" stroke-linecap="round"/>
+<text x="824" y="570" font-size="11" text-anchor="middle" font-weight="bold" fill="#1f2430">BZ1 buzzer</text>
+<text x="824" y="584" font-size="9" text-anchor="middle" font-weight="normal" fill="#1f2430"></text>
+<text x="1020" y="694" font-size="11" text-anchor="middle" font-weight="normal" fill="#6b7280">GND</text>
+<line x1="1020" y1="700" x2="1020" y2="716" stroke="#1f2430" stroke-width="2" stroke-linecap="round"/>
+<line x1="1020" y1="716" x2="1020" y2="724" stroke="#1f2430" stroke-width="2" stroke-linecap="round"/>
+<line x1="1010" y1="724" x2="1030" y2="724" stroke="#1f2430" stroke-width="2" stroke-linecap="round"/>
+<line x1="1014" y1="728" x2="1026" y2="728" stroke="#1f2430" stroke-width="2" stroke-linecap="round"/>
+<line x1="1018" y1="732" x2="1022" y2="732" stroke="#1f2430" stroke-width="2" stroke-linecap="round"/>
+<text x="948" y="224" font-size="10" text-anchor="start" font-weight="normal" fill="#6b7280">3V3 pin: output, leave open</text>
+<text x="1092" y="640" font-size="10" text-anchor="end" font-weight="normal" fill="#6b7280">IO48/IO38:</text>
+<text x="1092" y="654" font-size="10" text-anchor="end" font-weight="normal" fill="#6b7280">on-board LED</text>
+<text x="735" y="172" font-size="12" text-anchor="start" font-weight="bold" fill="#1f2430">+5V</text>
+<line x1="740" y1="180" x2="940" y2="180" stroke="#1f2430" stroke-width="2" stroke-linecap="round"/>
+<text x="735" y="414" font-size="11" text-anchor="start" font-weight="bold" fill="#1f2430">VBAT_SENSE</text>
+<line x1="740" y1="420" x2="940" y2="420" stroke="#1f2430" stroke-width="2" stroke-linecap="round"/>
+<text x="735" y="640" font-size="11" text-anchor="start" font-weight="normal" fill="#6b7280">On the dev board: 3.3 V LDO, EN reset</text>
+<text x="735" y="655" font-size="11" text-anchor="start" font-weight="normal" fill="#6b7280">network, BOOT and RESET buttons,</text>
+<text x="735" y="670" font-size="11" text-anchor="start" font-weight="normal" fill="#6b7280">two USB-C ports (UART and native).</text>
+<text x="735" y="692" font-size="11" text-anchor="start" font-weight="normal" fill="#6b7280">Flash with the pack switched OFF and</text>
+<text x="735" y="707" font-size="11" text-anchor="start" font-weight="normal" fill="#6b7280">USB connected; never both at once.</text>
+<polyline points="1100,200 1130,200 1130,175 1180,175" fill="none" stroke="#1f2430" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="1100,260 1125,260 1125,305 1180,305" fill="none" stroke="#1f2430" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="1100,320 1112,320 1112,435 1180,435" fill="none" stroke="#1f2430" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+<rect x="1170" y="60" width="720" height="520" rx="8" fill="none" stroke="#9aa3b2" stroke-width="1.5" stroke-dasharray="6 4"/>
+<text x="1182" y="80" font-size="14" text-anchor="start" font-weight="bold" fill="#6b7280">C · CAMERA INTERFACE (3 × PC817, low-side switch lines)</text>
+<text x="1190" y="193" font-size="11" text-anchor="start" font-weight="bold" fill="#1f2430">FULL_DRV</text>
+<line x1="1180" y1="175" x2="1215" y2="175" stroke="#1f2430" stroke-width="2" stroke-linecap="round"/>
+<line x1="1215" y1="175" x2="1227.0" y2="175" stroke="#1f2430" stroke-width="2" stroke-linecap="round"/>
+<line x1="1263.0" y1="175" x2="1275" y2="175" stroke="#1f2430" stroke-width="2" stroke-linecap="round"/>
+<rect x="1227.0" y="168" width="36" height="14" rx="0" fill="white" stroke="#1f2430" stroke-width="2"/>
+<text x="1245.0" y="165" font-size="11" text-anchor="middle" font-weight="normal" fill="#1f2430">R 1 k</text>
+<line x1="1275" y1="175" x2="1335" y2="175" stroke="#1f2430" stroke-width="2" stroke-linecap="round"/>
+<circle cx="1335" cy="175" r="3.5" fill="#1f2430"/>
+<line x1="1335" y1="175" x2="1380" y2="175" stroke="#1f2430" stroke-width="2" stroke-linecap="round"/>
+<line x1="1335" y1="175" x2="1335" y2="182.0" stroke="#1f2430" stroke-width="2" stroke-linecap="round"/>
+<line x1="1335" y1="218.0" x2="1335" y2="225" stroke="#1f2430" stroke-width="2" stroke-linecap="round"/>
+<rect x="1328" y="182.0" width="14" height="36" rx="0" fill="white" stroke="#1f2430" stroke-width="2"/>
+<text x="1323" y="204.0" font-size="11" text-anchor="end" font-weight="normal" fill="#1f2430">10 k</text>
+<line x1="1335" y1="225" x2="1335" y2="233" stroke="#1f2430" stroke-width="2" stroke-linecap="round"/>
+<line x1="1325" y1="233" x2="1345" y2="233" stroke="#1f2430" stroke-width="2" stroke-linecap="round"/>
+<line x1="1329" y1="237" x2="1341" y2="237" stroke="#1f2430" stroke-width="2" stroke-linecap="round"/>
+<line x1="1333" y1="241" x2="1337" y2="241" stroke="#1f2430" stroke-width="2" stroke-linecap="round"/>
+<line x1="1380" y1="205" x2="1360" y2="205" stroke="#1f2430" stroke-width="2" stroke-linecap="round"/>
+<line x1="1360" y1="205" x2="1360" y2="225" stroke="#1f2430" stroke-width="2" stroke-linecap="round"/>
+<line x1="1360" y1="225" x2="1360" y2="233" stroke="#1f2430" stroke-width="2" stroke-linecap="round"/>
+<line x1="1350" y1="233" x2="1370" y2="233" stroke="#1f2430" stroke-width="2" stroke-linecap="round"/>
+<line x1="1354" y1="237" x2="1366" y2="237" stroke="#1f2430" stroke-width="2" stroke-linecap="round"/>
+<line x1="1358" y1="241" x2="1362" y2="241" stroke="#1f2430" stroke-width="2" stroke-linecap="round"/>
+<rect x="1380" y="155" width="80" height="70" rx="4" fill="none" stroke="#1f2430" stroke-width="2"/>
+<text x="1420" y="184" font-size="12" text-anchor="middle" font-weight="bold" fill="#1f2430">U3 PC817</text>
+<text x="1420" y="200" font-size="10" text-anchor="middle" font-weight="normal" fill="#1f2430">FULL</text>
+<text x="1386" y="172" font-size="9" text-anchor="start" font-weight="normal" fill="#6b7280">1</text>
+<text x="1386" y="218" font-size="9" text-anchor="start" font-weight="normal" fill="#6b7280">2</text>
+<text x="1454" y="172" font-size="9" text-anchor="end" font-weight="normal" fill="#6b7280">4</text>
+<text x="1454" y="218" font-size="9" text-anchor="end" font-weight="normal" fill="#6b7280">3</text>
+<polyline points="1460,175 1620,175" fill="none" stroke="#ea8a00" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"/>
+<line x1="1460" y1="205" x2="1500" y2="205" stroke="#1f2430" stroke-width="2" stroke-linecap="round"/>
+<text x="1506" y="209" font-size="11" text-anchor="start" font-weight="bold" fill="#2563eb">BLU</text>
+<text x="1190" y="323" font-size="11" text-anchor="start" font-weight="bold" fill="#1f2430">HALF_DRV</text>
+<line x1="1180" y1="305" x2="1215" y2="305" stroke="#1f2430" stroke-width="2" stroke-linecap="round"/>
+<line x1="1215" y1="305" x2="1227.0" y2="305" stroke="#1f2430" stroke-width="2" stroke-linecap="round"/>
+<line x1="1263.0" y1="305" x2="1275" y2="305" stroke="#1f2430" stroke-width="2" stroke-linecap="round"/>
+<rect x="1227.0" y="298" width="36" height="14" rx="0" fill="white" stroke="#1f2430" stroke-width="2"/>
+<text x="1245.0" y="295" font-size="11" text-anchor="middle" font-weight="normal" fill="#1f2430">R 1 k</text>
+<line x1="1275" y1="305" x2="1335" y2="305" stroke="#1f2430" stroke-width="2" stroke-linecap="round"/>
+<circle cx="1335" cy="305" r="3.5" fill="#1f2430"/>
+<line x1="1335" y1="305" x2="1380" y2="305" stroke="#1f2430" stroke-width="2" stroke-linecap="round"/>
+<line x1="1335" y1="305" x2="1335" y2="312.0" stroke="#1f2430" stroke-width="2" stroke-linecap="round"/>
+<line x1="1335" y1="348.0" x2="1335" y2="355" stroke="#1f2430" stroke-width="2" stroke-linecap="round"/>
+<rect x="1328" y="312.0" width="14" height="36" rx="0" fill="white" stroke="#1f2430" stroke-width="2"/>
+<text x="1323" y="334.0" font-size="11" text-anchor="end" font-weight="normal" fill="#1f2430">10 k</text>
+<line x1="1335" y1="355" x2="1335" y2="363" stroke="#1f2430" stroke-width="2" stroke-linecap="round"/>
+<line x1="1325" y1="363" x2="1345" y2="363" stroke="#1f2430" stroke-width="2" stroke-linecap="round"/>
+<line x1="1329" y1="367" x2="1341" y2="367" stroke="#1f2430" stroke-width="2" stroke-linecap="round"/>
+<line x1="1333" y1="371" x2="1337" y2="371" stroke="#1f2430" stroke-width="2" stroke-linecap="round"/>
+<line x1="1380" y1="335" x2="1360" y2="335" stroke="#1f2430" stroke-width="2" stroke-linecap="round"/>
+<line x1="1360" y1="335" x2="1360" y2="355" stroke="#1f2430" stroke-width="2" stroke-linecap="round"/>
+<line x1="1360" y1="355" x2="1360" y2="363" stroke="#1f2430" stroke-width="2" stroke-linecap="round"/>
+<line x1="1350" y1="363" x2="1370" y2="363" stroke="#1f2430" stroke-width="2" stroke-linecap="round"/>
+<line x1="1354" y1="367" x2="1366" y2="367" stroke="#1f2430" stroke-width="2" stroke-linecap="round"/>
+<line x1="1358" y1="371" x2="1362" y2="371" stroke="#1f2430" stroke-width="2" stroke-linecap="round"/>
+<rect x="1380" y="285" width="80" height="70" rx="4" fill="none" stroke="#1f2430" stroke-width="2"/>
+<text x="1420" y="314" font-size="12" text-anchor="middle" font-weight="bold" fill="#1f2430">U4 PC817</text>
+<text x="1420" y="330" font-size="10" text-anchor="middle" font-weight="normal" fill="#1f2430">HALF</text>
+<text x="1386" y="302" font-size="9" text-anchor="start" font-weight="normal" fill="#6b7280">1</text>
+<text x="1386" y="348" font-size="9" text-anchor="start" font-weight="normal" fill="#6b7280">2</text>
+<text x="1454" y="302" font-size="9" text-anchor="end" font-weight="normal" fill="#6b7280">4</text>
+<text x="1454" y="348" font-size="9" text-anchor="end" font-weight="normal" fill="#6b7280">3</text>
+<polyline points="1460,305 1620,305" fill="none" stroke="#dc2626" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"/>
+<line x1="1460" y1="335" x2="1500" y2="335" stroke="#1f2430" stroke-width="2" stroke-linecap="round"/>
+<text x="1506" y="339" font-size="11" text-anchor="start" font-weight="bold" fill="#2563eb">BLU</text>
+<text x="1190" y="453" font-size="11" text-anchor="start" font-weight="bold" fill="#1f2430">PWR_DRV</text>
+<line x1="1180" y1="435" x2="1215" y2="435" stroke="#1f2430" stroke-width="2" stroke-linecap="round"/>
+<line x1="1215" y1="435" x2="1227.0" y2="435" stroke="#1f2430" stroke-width="2" stroke-linecap="round"/>
+<line x1="1263.0" y1="435" x2="1275" y2="435" stroke="#1f2430" stroke-width="2" stroke-linecap="round"/>
+<rect x="1227.0" y="428" width="36" height="14" rx="0" fill="white" stroke="#1f2430" stroke-width="2"/>
+<text x="1245.0" y="425" font-size="11" text-anchor="middle" font-weight="normal" fill="#1f2430">R 1 k</text>
+<line x1="1275" y1="435" x2="1335" y2="435" stroke="#1f2430" stroke-width="2" stroke-linecap="round"/>
+<circle cx="1335" cy="435" r="3.5" fill="#1f2430"/>
+<line x1="1335" y1="435" x2="1380" y2="435" stroke="#1f2430" stroke-width="2" stroke-linecap="round"/>
+<line x1="1335" y1="435" x2="1335" y2="442.0" stroke="#1f2430" stroke-width="2" stroke-linecap="round"/>
+<line x1="1335" y1="478.0" x2="1335" y2="485" stroke="#1f2430" stroke-width="2" stroke-linecap="round"/>
+<rect x="1328" y="442.0" width="14" height="36" rx="0" fill="white" stroke="#1f2430" stroke-width="2"/>
+<text x="1323" y="464.0" font-size="11" text-anchor="end" font-weight="normal" fill="#1f2430">10 k</text>
+<line x1="1335" y1="485" x2="1335" y2="493" stroke="#1f2430" stroke-width="2" stroke-linecap="round"/>
+<line x1="1325" y1="493" x2="1345" y2="493" stroke="#1f2430" stroke-width="2" stroke-linecap="round"/>
+<line x1="1329" y1="497" x2="1341" y2="497" stroke="#1f2430" stroke-width="2" stroke-linecap="round"/>
+<line x1="1333" y1="501" x2="1337" y2="501" stroke="#1f2430" stroke-width="2" stroke-linecap="round"/>
+<line x1="1380" y1="465" x2="1360" y2="465" stroke="#1f2430" stroke-width="2" stroke-linecap="round"/>
+<line x1="1360" y1="465" x2="1360" y2="485" stroke="#1f2430" stroke-width="2" stroke-linecap="round"/>
+<line x1="1360" y1="485" x2="1360" y2="493" stroke="#1f2430" stroke-width="2" stroke-linecap="round"/>
+<line x1="1350" y1="493" x2="1370" y2="493" stroke="#1f2430" stroke-width="2" stroke-linecap="round"/>
+<line x1="1354" y1="497" x2="1366" y2="497" stroke="#1f2430" stroke-width="2" stroke-linecap="round"/>
+<line x1="1358" y1="501" x2="1362" y2="501" stroke="#1f2430" stroke-width="2" stroke-linecap="round"/>
+<rect x="1380" y="415" width="80" height="70" rx="4" fill="none" stroke="#1f2430" stroke-width="2" stroke-dasharray="6 4"/>
+<text x="1420" y="444" font-size="12" text-anchor="middle" font-weight="bold" fill="#1f2430">U5 PC817</text>
+<text x="1420" y="460" font-size="10" text-anchor="middle" font-weight="normal" fill="#1f2430">ON/OFF</text>
+<text x="1386" y="432" font-size="9" text-anchor="start" font-weight="normal" fill="#6b7280">1</text>
+<text x="1386" y="478" font-size="9" text-anchor="start" font-weight="normal" fill="#6b7280">2</text>
+<text x="1454" y="432" font-size="9" text-anchor="end" font-weight="normal" fill="#6b7280">4</text>
+<text x="1454" y="478" font-size="9" text-anchor="end" font-weight="normal" fill="#6b7280">3</text>
+<polyline points="1460,435 1620,435" fill="none" stroke="#8b5a2b" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"/>
+<line x1="1460" y1="465" x2="1500" y2="465" stroke="#1f2430" stroke-width="2" stroke-linecap="round"/>
+<text x="1506" y="469" font-size="11" text-anchor="start" font-weight="bold" fill="#2563eb">BLU</text>
+<text x="1195" y="518" font-size="11" text-anchor="start" font-weight="normal" fill="#6b7280" font-style="italic">U5 optional (cam_power_ctrl)</text>
+<rect x="1620" y="150" width="70" height="380" rx="4" fill="none" stroke="#1f2430" stroke-width="2"/>
+<text x="1655" y="172" font-size="12" text-anchor="middle" font-weight="bold" fill="#1f2430">J3</text>
+<text x="1655" y="188" font-size="10" text-anchor="middle" font-weight="normal" fill="#6b7280">4-pin</text>
+<text x="1655" y="202" font-size="10" text-anchor="middle" font-weight="normal" fill="#6b7280">2.54 mm</text>
+<text x="1626" y="169" font-size="9" text-anchor="start" font-weight="normal" fill="#6b7280">1</text>
+<polyline points="1690,175 1730,175" fill="none" stroke="#ea8a00" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"/>
+<text x="1736" y="179" font-size="11" text-anchor="start" font-weight="normal" fill="#1f2430">orange → WHT, FULL (IO4)</text>
+<text x="1626" y="299" font-size="9" text-anchor="start" font-weight="normal" fill="#6b7280">2</text>
+<polyline points="1690,305 1730,305" fill="none" stroke="#dc2626" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"/>
+<text x="1736" y="309" font-size="11" text-anchor="start" font-weight="normal" fill="#1f2430">red → YEL, HALF (IO5)</text>
+<text x="1626" y="429" font-size="9" text-anchor="start" font-weight="normal" fill="#6b7280">3</text>
+<polyline points="1690,435 1730,435" fill="none" stroke="#8b5a2b" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"/>
+<text x="1736" y="439" font-size="11" text-anchor="start" font-weight="normal" fill="#1f2430">brown → GRN, ON/OFF (IO6)</text>
+<text x="1626" y="494" font-size="9" text-anchor="start" font-weight="normal" fill="#6b7280">4</text>
+<polyline points="1580,500 1620,500" fill="none" stroke="#111111" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"/>
+<text x="1535" y="504" font-size="11" text-anchor="start" font-weight="bold" fill="#2563eb">BLU</text>
+<polyline points="1690,500 1730,500" fill="none" stroke="#111111" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"/>
+<text x="1736" y="504" font-size="11" text-anchor="start" font-weight="normal" fill="#1f2430">black → BLU, common</text>
+<text x="1180" y="568" font-size="11" text-anchor="start" font-weight="normal" fill="#6b7280">Collector → camera line (pull-up in the camera), emitter → BLU. Release = HALF (U4) first, then FULL (U3) (FR-N04); both end at REST.</text>
+<rect x="1170" y="590" width="720" height="390" rx="8" fill="none" stroke="#9aa3b2" stroke-width="1.5" stroke-dasharray="6 4"/>
+<text x="1182" y="610" font-size="14" text-anchor="start" font-weight="bold" fill="#6b7280">D · NIKON D3000 (modified) — measured 2026-10-07</text>
+<rect x="1260" y="625" width="190" height="240" rx="6" fill="none" stroke="#6b7280" stroke-width="1.5" stroke-dasharray="4 3"/>
+<text x="1355" y="858" font-size="11" text-anchor="middle" font-weight="normal" fill="#6b7280">battery compartment</text>
+<text x="1195" y="664" font-size="11" text-anchor="start" font-weight="bold" fill="#dc2626">RED</text>
+<polyline points="1228,660 1260,660" fill="none" stroke="#dc2626" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"/>
+<text x="1195" y="824" font-size="11" text-anchor="start" font-weight="bold" fill="#1f2430">BLK</text>
+<polyline points="1228,820 1260,820" fill="none" stroke="#111111" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"/>
+<text x="1268" y="654" font-size="12" text-anchor="start" font-weight="bold" fill="#1f2430">+</text>
+<text x="1268" y="814" font-size="12" text-anchor="start" font-weight="bold" fill="#1f2430">−</text>
+<text x="1268" y="734" font-size="12" text-anchor="start" font-weight="bold" fill="#1f2430">S</text>
+<line x1="1260" y1="660" x2="1430" y2="660" stroke="#1f2430" stroke-width="2" stroke-linecap="round"/>
+<text x="1295" y="652" font-size="11" text-anchor="start" font-weight="normal" fill="#1f2430">→ camera supply</text>
+<text x="1195" y="744" font-size="11" text-anchor="start" font-weight="bold" fill="#2563eb">S*</text>
+<polyline points="1228,740 1260,740" fill="none" stroke="#2563eb" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"/>
+<line x1="1260" y1="740" x2="1430" y2="740" stroke="#1f2430" stroke-width="2" stroke-linecap="round"/>
+<text x="1295" y="732" font-size="11" text-anchor="start" font-weight="normal" fill="#1f2430">→ S contact</text>
+<line x1="1260" y1="820" x2="1430" y2="820" stroke="#1f2430" stroke-width="2" stroke-linecap="round"/>
+<text x="1295" y="812" font-size="11" text-anchor="start" font-weight="normal" fill="#1f2430">→ camera ground</text>
+<text x="1268" y="766" font-size="10" text-anchor="start" font-weight="normal" fill="#6b7280">EN-EL9a S: ≈100 kΩ (NTC-like)</text>
+<text x="1268" y="780" font-size="10" text-anchor="start" font-weight="normal" fill="#6b7280">+ 9600 baud data.</text>
+<text x="1268" y="794" font-size="10" text-anchor="start" font-weight="normal" fill="#6b7280">Parked (O-12).</text>
+<text x="1268" y="842" font-size="10" text-anchor="start" font-weight="normal" fill="#6b7280">BLU ≡ BLK in camera</text>
+<text x="1195" y="886" font-size="11" text-anchor="start" font-weight="normal" fill="#6b7280" font-style="italic">* The camera-side S wire is blue, the same colour as BLU. Tag both ends of each wire;</text>
+<text x="1195" y="901" font-size="11" text-anchor="start" font-weight="normal" fill="#6b7280" font-style="italic">BLU is the one with continuity to BLK (black), S is not (see spec §6.2).</text>
+<line x1="1760" y1="670" x2="1760" y2="830" stroke="#1f2430" stroke-width="2" stroke-linecap="round"/>
+<text x="1770" y="754" font-size="11" text-anchor="start" font-weight="bold" fill="#2563eb">BLU</text>
+<text x="1490" y="674" font-size="11" text-anchor="start" font-weight="bold" fill="#1f2430">YEL</text>
+<polyline points="1520,670 1600,670" fill="none" stroke="#d4a800" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"/>
+<circle cx="1600" cy="670" r="3.5" fill="#1f2430"/>
+<line x1="1600" y1="622" x2="1600" y2="623.0" stroke="#1f2430" stroke-width="2" stroke-linecap="round"/>
+<line x1="1600" y1="659.0" x2="1600" y2="660" stroke="#1f2430" stroke-width="2" stroke-linecap="round"/>
+<rect x="1593" y="623.0" width="14" height="36" rx="0" fill="white" stroke="#1f2430" stroke-width="2"/>
+<text x="1612" y="645.0" font-size="11" text-anchor="start" font-weight="normal" fill="#1f2430">~40 kΩ</text>
+<line x1="1600" y1="622" x2="1600" y2="616" stroke="#1f2430" stroke-width="2" stroke-linecap="round"/>
+<text x="1600" y="612" font-size="10" text-anchor="middle" font-weight="normal" fill="#6b7280">+4.71 V</text>
+<line x1="1600" y1="670" x2="1650" y2="670" stroke="#1f2430" stroke-width="2" stroke-linecap="round"/>
+<line x1="1650" y1="670" x2="1662" y2="670" stroke="#1f2430" stroke-width="2" stroke-linecap="round"/>
+<line x1="1698" y1="670" x2="1710" y2="670" stroke="#1f2430" stroke-width="2" stroke-linecap="round"/>
+<line x1="1662" y1="670" x2="1698" y2="656" stroke="#1f2430" stroke-width="2" stroke-linecap="round"/>
+<circle cx="1662" cy="670" r="3" fill="white" stroke="#1f2430" stroke-width="2"/>
+<circle cx="1698" cy="670" r="3" fill="white" stroke="#1f2430" stroke-width="2"/>
+<text x="1680.0" y="692" font-size="11" text-anchor="middle" font-weight="normal" fill="#1f2430">focus: half press</text>
+<line x1="1710" y1="670" x2="1760" y2="670" stroke="#1f2430" stroke-width="2" stroke-linecap="round"/>
+<circle cx="1760" cy="670" r="3.5" fill="#1f2430"/>
+<text x="1490" y="754" font-size="11" text-anchor="start" font-weight="bold" fill="#1f2430">WHT</text>
+<polyline points="1520,750 1600,750" fill="none" stroke="#6b7280" stroke-width="5" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="1520,750 1600,750" fill="none" stroke="#ffffff" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>
+<circle cx="1600" cy="750" r="3.5" fill="#1f2430"/>
+<line x1="1600" y1="702" x2="1600" y2="703.0" stroke="#1f2430" stroke-width="2" stroke-linecap="round"/>
+<line x1="1600" y1="739.0" x2="1600" y2="740" stroke="#1f2430" stroke-width="2" stroke-linecap="round"/>
+<rect x="1593" y="703.0" width="14" height="36" rx="0" fill="white" stroke="#1f2430" stroke-width="2"/>
+<text x="1612" y="725.0" font-size="11" text-anchor="start" font-weight="normal" fill="#1f2430">~50 kΩ</text>
+<line x1="1600" y1="702" x2="1600" y2="696" stroke="#1f2430" stroke-width="2" stroke-linecap="round"/>
+<text x="1600" y="692" font-size="10" text-anchor="middle" font-weight="normal" fill="#6b7280">+3.31 V</text>
+<line x1="1600" y1="750" x2="1650" y2="750" stroke="#1f2430" stroke-width="2" stroke-linecap="round"/>
+<line x1="1650" y1="750" x2="1662" y2="750" stroke="#1f2430" stroke-width="2" stroke-linecap="round"/>
+<line x1="1698" y1="750" x2="1710" y2="750" stroke="#1f2430" stroke-width="2" stroke-linecap="round"/>
+<line x1="1662" y1="750" x2="1698" y2="736" stroke="#1f2430" stroke-width="2" stroke-linecap="round"/>
+<circle cx="1662" cy="750" r="3" fill="white" stroke="#1f2430" stroke-width="2"/>
+<circle cx="1698" cy="750" r="3" fill="white" stroke="#1f2430" stroke-width="2"/>
+<text x="1680.0" y="772" font-size="11" text-anchor="middle" font-weight="normal" fill="#1f2430">shutter: full press</text>
+<line x1="1710" y1="750" x2="1760" y2="750" stroke="#1f2430" stroke-width="2" stroke-linecap="round"/>
+<circle cx="1760" cy="750" r="3.5" fill="#1f2430"/>
+<text x="1490" y="834" font-size="11" text-anchor="start" font-weight="bold" fill="#1f2430">GRN</text>
+<polyline points="1520,830 1600,830" fill="none" stroke="#1f9d55" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"/>
+<circle cx="1600" cy="830" r="3.5" fill="#1f2430"/>
+<line x1="1600" y1="782" x2="1600" y2="783.0" stroke="#1f2430" stroke-width="2" stroke-linecap="round"/>
+<line x1="1600" y1="819.0" x2="1600" y2="820" stroke="#1f2430" stroke-width="2" stroke-linecap="round"/>
+<rect x="1593" y="783.0" width="14" height="36" rx="0" fill="white" stroke="#1f2430" stroke-width="2"/>
+<text x="1612" y="805.0" font-size="11" text-anchor="start" font-weight="normal" fill="#1f2430">~470 kΩ</text>
+<line x1="1600" y1="782" x2="1600" y2="776" stroke="#1f2430" stroke-width="2" stroke-linecap="round"/>
+<text x="1600" y="772" font-size="10" text-anchor="middle" font-weight="normal" fill="#6b7280">+4.72 V</text>
+<line x1="1600" y1="830" x2="1650" y2="830" stroke="#1f2430" stroke-width="2" stroke-linecap="round"/>
+<line x1="1650" y1="830" x2="1662" y2="830" stroke="#1f2430" stroke-width="2" stroke-linecap="round"/>
+<line x1="1698" y1="830" x2="1710" y2="830" stroke="#1f2430" stroke-width="2" stroke-linecap="round"/>
+<line x1="1662" y1="830" x2="1698" y2="816" stroke="#1f2430" stroke-width="2" stroke-linecap="round"/>
+<circle cx="1662" cy="830" r="3" fill="white" stroke="#1f2430" stroke-width="2"/>
+<circle cx="1698" cy="830" r="3" fill="white" stroke="#1f2430" stroke-width="2"/>
+<text x="1680.0" y="852" font-size="11" text-anchor="middle" font-weight="normal" fill="#1f2430">on/off slide: closed = OFF</text>
+<line x1="1710" y1="830" x2="1760" y2="830" stroke="#1f2430" stroke-width="2" stroke-linecap="round"/>
+<circle cx="1760" cy="830" r="3.5" fill="#1f2430"/>
+<text x="1180" y="930" font-size="11" text-anchor="start" font-weight="normal" fill="#6b7280">Idle levels and short-circuit currents measured: YEL 4.71 V / 0.12 mA, WHT 3.31 V / 0.064 mA, GRN 4.72 V / 0.01 mA.</text>
+<text x="1180" y="946" font-size="11" text-anchor="start" font-weight="normal" fill="#6b7280">YEL stays at 0 V during a full press (HALF is held closed), so a release needs both U4 (HALF) and U3 (FULL).</text>
+<text x="1180" y="962" font-size="11" text-anchor="start" font-weight="normal" fill="#6b7280">Pull-up values are estimates from the measured currents; the camera's low threshold is above 0.6 V (diode test).</text>
+<rect x="20" y="800" width="1130" height="195" rx="8" fill="none" stroke="#9aa3b2" stroke-width="1.5"/>
+<text x="32" y="822" font-size="14" text-anchor="start" font-weight="bold" fill="#6b7280">NOTES</text>
+<text x="32" y="846" font-size="11.5" text-anchor="start" font-weight="normal" fill="#1f2430">1. All GPIO are 3.3 V logic. Outputs use IO4/5/6 and IO15 (buzzer). IO0, IO3, IO45, IO46 and IO35–37 (octal PSRAM) are left free; the on-board LED uses IO48 (v1.0) or IO38 (v1.1).</text>
+<text x="32" y="864" font-size="11.5" text-anchor="start" font-weight="normal" fill="#1f2430">2. Opto LED current ≈ (3.3 − 1.2) V / 1 kΩ ≈ 2 mA. The 10 kΩ pull-downs keep every opto off while the ESP32 is in reset (FR-N02, shutter in REST).</text>
+<text x="32" y="882" font-size="11.5" text-anchor="start" font-weight="normal" fill="#1f2430">3. BLU is the opto return and is deliberately not tied to GND at the node; it meets BLK inside the camera. A broken BLU wire means no release (fail-safe).</text>
+<text x="32" y="900" font-size="11.5" text-anchor="start" font-weight="normal" fill="#1f2430">4. U5 (green line) is optional: shorting GRN to BLU switches the camera off, an open opto lets the knob decide (ON). Feature is off by default.</text>
+<text x="32" y="918" font-size="11.5" text-anchor="start" font-weight="normal" fill="#1f2430">5. The buck feeds 5.0 V to the dev board's 5V0 pin and its on-board LDO makes 3.3 V. Power options are mutually exclusive: no USB while the pack is on.</text>
+<text x="32" y="936" font-size="11.5" text-anchor="start" font-weight="normal" fill="#1f2430">6. Capacitors: C1 100 µF, C2 47 µF, C3 100 nF. Resistors 1 % metal film. Gotron references in gotron_bestellijst.md. Buck min. input ≈ 6.0 V (node cutoff 6.6 V).</text>
+<text x="32" y="954" font-size="11.5" text-anchor="start" font-weight="normal" fill="#1f2430">7. Camera cable: 7 conductors, 2 connectors. J2 (3-pin): red +, brown S, black −; S wire is blue like BLU: tag it. J3 (4-pin): orange FULL, red HALF, brown ON/OFF, black = BLU. Brown/black repeat: different nets.</text>
+<text x="32" y="972" font-size="11.5" text-anchor="start" font-weight="normal" fill="#1f2430">8. BZ1 active buzzer: + to IO15, − to GND, direct drive (2 mA at 3.3 V measured). One fixed pitch: patterns by rhythm only.</text>
+<text x="32" y="990" font-size="11.5" text-anchor="start" font-weight="normal" fill="#1f2430">9. Not yet verified: camera powered from the node (S contact parked, O-12), camera current (O-11), 5 V dev-board current, buck, final GPIO map.</text>
+</svg>
