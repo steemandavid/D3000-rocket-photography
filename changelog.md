@@ -359,3 +359,13 @@ Review the CRIG handoff and spec, work out what to buy at Gotron.be, and process
 ## 2026-11-03 — EN-EL9a S-pin re-measured
 
 David measured the S contact to − on the original EN-EL9a (out of the camera): **102 kΩ**. That confirms the 2026-10-15 correction (≈100 kΩ, NTC-like), not the 98 Ω recorded on 2026-10-07. Added the reading to `docs/en-el9-s-pin/EN-EL9_S-pin_findings.md`, spec PW-01 and handoff D18; annotated the 2026-10-07 table row and marked the 100 Ω item in `gotron_bestellijst.md` as obsolete. Older history entries (spec revision 0.5, changelog sections from 7–9 Oct) are left as written.
+
+## 2026-11-04 — CRIG firmware (node + remote)
+
+1. **Firmware `firmware/crig`** (ESP-IDF 5.4.1, one project, node/remote images via Kconfig): encrypted ESP-NOW on channel 1, binding from `tools/gen_binding.py` (git-ignored `crig_binding.h`), MAC-checked `flash.sh`. Node: shutter FSM, PREPARE, pack monitor, LED, buzzer, console. Remote: SHOOT/TRIG/ARM, ARM decoder, link quality, readiness LEDs, motor, RGB, OLED, battery.
+2. **Tests:** 30 host checks (`tests/host/run.sh`); HIL H01–H17 (`tests/hil/hil.py`) pass 3 runs in a row on both boards, driven through console `sim` hooks.
+3. **Fixes found on the bench:** node → remote frames unacknowledged at first (cleared after a physical change, RSSI −32 → −8 dBm; `scan`/`bcast` diagnostics added); false remote battery cutoff while the motor ran (`gpio_get_level()` on an output-only pin always reads 0) — battery now read only with the motor off, 3 s cutoff persistence, 10 s to deep sleep.
+4. **Spec v0.19:** fault bits NO_PACK/PREPARING, no-pack/no-cell rules, node LED pins, §14.5 HIL table, O-21 (untested/unimplemented).
+5. **RLC feedback:** the RLC starts each new ARM pattern in its LOW phase (first 1 Hz pulse ~950 ms after a disarm). Accepted: the CRIG decoder already handles it (ARMED drops 300 ms after the last fast pulse; CONNECTED is held); host test added; T-27 and the hand-off doc updated.
+
+**Notes:** HIL burst tests take real pictures if the camera is attached. The node read 8.2 V with USB connected — don't power it from the pack and USB at the same time.

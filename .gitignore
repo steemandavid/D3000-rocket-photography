@@ -1,5 +1,6 @@
 # ESP-IDF build output
 firmware/*/build/
+firmware/*/build_*/
 sdkconfig.old
 managed_components/
 dependencies.lock

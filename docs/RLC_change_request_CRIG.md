@@ -101,7 +101,7 @@ The CRIG IDs are in brackets. Run them with a logic analyser or scope on pins 1�
 4. **[T-24]** PRE_FIRE and fire pulse durations unchanged (± 5 ms) with and without the module active.
 5. **[T-25]** Short pin 1 or pin 3 to pin 2 (COM−): about 7 mA, and the base keeps operating normally.
 6. **[T-26]** After power-on: no pulses during boot, and 1 Hz within 2 s.
-7. **[T-27]** ARM follows arm, disarm, arm timeout, key off and ERROR within 100 ms.
+7. **[T-27]** ARM follows arm, disarm, arm timeout, key off and ERROR within 100 ms. *Accepted deviation (RLC FSD §15.6):* a new pattern starts in its LOW phase, so after a disarm the first 1 Hz pulse comes about 950 ms later. The 10 Hz pulses must still stop within 100 ms; the CRIG drops ARMED 300 ms after the last fast pulse.
 8. **Regression:** the existing fire-path safety tests.
 
 ## 8. Answers to the RLC review (2026-11-03)

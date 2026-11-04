@@ -1,0 +1,13 @@
+menu "CRIG"
+    choice CRIG_UNIT
+        prompt "CRIG unit"
+        default CRIG_UNIT_NODE
+        config CRIG_UNIT_NODE
+            bool "Camera node"
+        config CRIG_UNIT_REMOTE
+            bool "Remote"
+    endchoice
+    config CRIG_TEST_HOOKS
+        bool "Console test hooks (remote: sim shoot/trig/arm, badcrc)"
+        default y
+endmenu
