@@ -396,3 +396,10 @@ David measured the S contact to − on the original EN-EL9a (out of the camera):
 - **Deep sleep fix:** the OLED stayed lit in deep sleep (powered from 3V3) and the display task overwrote the shutdown message. Now the display task stops, `REMOTE BATT EMPTY` shows for 2 s, then display off and charge pump off before sleep. Rechecked: OLED dark.
 - Readiness LEDs stay green while shooting: as designed (motor, RGB and OLED show shooting).
 - Regression: host 30/30; HIL 16/16 with the node on its native port, then with both CRIG units back on their UART bridges the full suite H01–H17 + R01–R02 **19/19 pass**.
+
+### 2026-11-06 (cont.) — camera end to end
+
+- D3000 on its own battery with only the release cable (J3); **J2 deliberately not connected**: its leads go straight to the battery terminals (parallel with the inserted battery) and carry the supply unregulated (the bench supply was at 11.9 V, lowered to 7.36 V).
+- Frames read straight from the card over USB (gvfs gphoto2 mount; remount to refresh the listing). C1 button 2.5 s → **8 frames, 3.0 fps**; C2 tap from standby → woke, 2 frames; C3 RLC full sequence from standby → **19 frames** over the 6.0 s TRIG window, ~6 before ignition. The camera's remaining-shots counter is an estimate (dropped 5 for 8 frames).
+- **Found:** node VBAT sense constant at 9864 mV (ADC ceiling) at both 11.9 V and 7.36 V → IO1 ≥ ~3.1 V; divider to be checked (new O-22). Pack warning/cutoff can't trip until fixed.
+- Log `captures/2026-11-06-camera-e2e.log` (git-ignored).
