@@ -31,6 +31,7 @@ The console also works on the **native USB port** (`usb-Espressif_USB_JTAG_seria
 mirrored there, and input is read from its RX FIFO. Open it raw without touching DTR/RTS (they select download mode);
 `reboot` restarts the board. `flash.sh` and `hil.py` fall back to the native port when the UART bridge isn't plugged in
 (a board on its native port can't be held in reset, so H03 and H12 need the **node** on its UART bridge).
+Both units take `reboot`, which the harness uses to restart a board on its native port.
 
 ## Tests
 
@@ -51,8 +52,8 @@ and the remote resets them all on reboot.
 
 | Unit | Commands |
 |---|---|
-| node | `status`, `test` (one HALF → FULL → REST cycle, FR-N07), `scan`, `bcast`, `sim vbat` |
-| remote | `status` (incl. ARM line stats `aedges`/`aper`/`aage`/`aisr`), `screen` (current OLED text), `scan`, `bcast`, `reboot`, `sim …` |
+| node | `status`, `test` (one HALF → FULL → REST cycle, FR-N07), `beep <ms>`, `reboot`, `scan`, `bcast`, `sim vbat` |
+| remote | `status` (incl. ARM line stats `aedges`/`aper`/`aage`/`aisr`), `screen` (current OLED text), `scan`, `bcast`, `beep <ms>`, `reboot`, `sim …` |
 
 Both log state changes as `EVT <ms> <what>`.
 
@@ -62,6 +63,6 @@ These need a person or hardware that isn't fitted yet:
 - **Physical inputs:** the real SHOOT button debounce on IO4 (the earlier hardware test confirmed the button itself).
 - **The RLC armed and firing:** R01–R02 cover the real idle ARM pattern, the idle TRIG line and a base reset; the
   10 Hz armed pattern and an active TRIG need a person to arm and fire the RLC (T-21, T-22, T-27).
-- **What you see and hear:** LEDs, RGB patterns, buzzer tones and the vibration motor. Their logic is tested through `ready` events and `screen`.
-- **Deep sleep** at remote battery cutoff (FR-R11).
+- **What you see and hear** (LEDs, RGB, buzzer, motor, deep sleep): checked by hand on 2026-11-06 (spec §14.5); the
+  automated tests see their logic through `ready` events and `screen`.
 - **The camera itself** (frames, standby wake).

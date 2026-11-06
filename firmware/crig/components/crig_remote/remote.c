@@ -88,6 +88,7 @@ static int  s_batt_mv;
 static bool s_usb_only, s_batt_warn, s_batt_cut;
 static int64_t s_t_cut;
 static bool s_ready, s_vib;
+static volatile bool s_shutdown;
 static int s_sim_batt = -1;            /* test hook: override the cell voltage (mV), -1 = real */
 static char s_screen[8][24];          /* last composed OLED text, for the 'screen' command */
 static int64_t s_t_vib_off;
@@ -261,10 +262,13 @@ static void batt_update(int64_t t)
     s_batt_warn = w; s_batt_cut = c;
     if (s_batt_cut && t - s_t_cut > MS(T_BATT_SHUTDOWN_MS)) {     /* FR-R11: clean shutdown */
         evt("batt empty: shutting down");
+        s_shutdown = true;                       /* stops the display task redrawing the main page */
+        vTaskDelay(pdMS_TO_TICKS(300));
         oled_clear(); oled_text(0, 3, "REMOTE BATT EMPTY"); oled_flush();
         gpio_set_level(PIN_VIB, 0); gpio_set_level(PIN_LED_G, 0); gpio_set_level(PIN_LED_R, 0);
         crig_ws_set(&s_rgb, 0, 0, 0);
         vTaskDelay(pdMS_TO_TICKS(2000));
+        oled_off();                              /* the OLED stays powered from 3V3 in deep sleep */
         esp_deep_sleep_start();
     }
 }
@@ -318,6 +322,7 @@ static void display_task(void *arg)
 {
     char l[40];
     while (1) {
+        if (s_shutdown) { vTaskDelay(pdMS_TO_TICKS(1000)); continue; }
         oled_clear();
         memset(s_screen, 0, sizeof s_screen);
         snprintf(l, sizeof l, "LINK %3d%% RSSI %d", s_link ? s_quality : 0, s_fresh ? s_node.rssi : 0);
@@ -369,10 +374,14 @@ static void console(void)
     int n = sscanf(l, "%*s %15s %15s", a, b);
     if (!strcmp(l, "status")) print_status();
     else if (!strcmp(l, "screen")) { for (int i = 0; i < 8; i++) printf("SCREEN %d |%s|\n", i, s_screen[i]); }
+    else if (!strncmp(l, "beep ", 5)) {      /* buzzer check: one tone of <ms> (silent while shooting) */
+        uint16_t ms[] = { (uint16_t)atoi(l + 5) };
+        buzz(ms, 1); printf("OK beep %u\n", ms[0]);
+    }
     else if (!strcmp(l, "scan")) crig_link_scan();
     else if (!strcmp(l, "bcast")) crig_link_bcast_test(20);
     else if (!strcmp(l, "reboot")) { printf("OK reboot\n"); fflush(stdout); vTaskDelay(pdMS_TO_TICKS(50)); esp_restart(); }
-    else if (!strcmp(l, "help")) printf("commands: status | screen | scan | bcast | reboot | sim shoot|trig 0|1|real | sim arm none|1|10|real | sim batt <mv>|real | sim badcrc\n");
+    else if (!strcmp(l, "help")) printf("commands: status | screen | scan | bcast | beep <ms> | reboot | sim shoot|trig 0|1|real | sim arm none|1|10|real | sim batt <mv>|real | sim badcrc\n");
 #if CONFIG_CRIG_TEST_HOOKS
     else if (!strncmp(l, "sim ", 4) && n >= 1) {
         if (!strcmp(a, "shoot") && n == 2) { s_sim_shoot = parse01(b); printf("OK sim shoot %d\n", s_sim_shoot); }
@@ -444,6 +453,7 @@ void crig_remote_main(void)
         if (a != s_arm) {
             evt("rlc %s", armdec_name(a));
             if (a == ARM_LOST) { static const uint16_t p[] = { 300, 150, 300 }; buzz(p, 3); }
+            else if (s_arm == ARM_LOST) { static const uint16_t p[] = { 100, 100, 100 }; buzz(p, 3); }   /* RLC restored */
             s_arm = a;
         }
 

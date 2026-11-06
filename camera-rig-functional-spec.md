@@ -158,7 +158,7 @@ Out of scope:
 | FR-N16 | The node shall not switch the camera off within `t_cam_off_delay` of the last FULL, nor while the shutter is not in REST. |
 | FR-N17 | The node shall report the camera power state in STATUS. |
 | FR-N19 | When `prepare` changes from 0 to 1, the node shall prepare the camera: if `cam_power_ctrl` is on and the camera is off, switch it on (FR-N14, FR-N15); then, once the camera is ready, give one HALF pulse of `t_prepare_wake`. While `prepare` stays 1 and the node is IDLE, it shall repeat a HALF pulse every `t_prepare_keepalive`. `prepare` does not gate SHOOT. When `prepare` returns to 0 or the link is lost, the node stops preparing; camera power then follows §6.3. |
-| FR-N18 | The node has a buzzer (GPIO15, + to GPIO15, − to GND) for local state and fault indication. Tone patterns are to be defined (O-17) and shall differ from RLC and other launch system tones. The buzzer shall never sound while the shutter is not in REST. |
+| FR-N18 | The node has a buzzer (GPIO7, + to GPIO7, − to GND; as wired, found 2026-11-06 — the draft schematic said GPIO15) for local state and fault indication. Tone patterns are to be defined (O-17) and shall differ from RLC and other launch system tones. The buzzer shall never sound while the shutter is not in REST. |
 
 ### 5.2 Remote
 
@@ -627,12 +627,12 @@ The camera's EN-EL9a is removed; leads are soldered to the camera's battery comp
 
 ### 12.1 Node
 
-Draft schematic: `crig_node_schematic.svg` (PNG alongside), v0.2, not bench-validated; the GPIO assignment in it (IO1 VBAT sense, IO4 FULL, IO5 HALF, IO6 camera power, IO15 buzzer; status LED = on-board WS2812 on IO48/IO38) is a proposal.
+Draft schematic: `crig_node_schematic.svg` (PNG alongside), v0.2, not bench-validated; the GPIO assignment in it (IO1 VBAT sense, IO4 FULL, IO5 HALF, IO6 camera power, IO15 buzzer (as built: IO7); status LED = on-board WS2812 on IO48/IO38) is a proposal.
 
 - ESP32-S3-DevKitC-1 dev board (same as the RLC), powered at 5 V by the node buck; on-board LDO, EN reset network, BOOT/RESET buttons and USB-C used for flashing
 - Node and camera pack per §11.3
 - Actuator output: servo header (option A) and/or 2 × optocoupler output with connector (option B); optional third optocoupler for the camera on/off line (§6.3)
-- Active buzzer on GPIO15, + to GPIO15 and − to GND, direct drive (2 mA measured at 3.3 V). An active buzzer has one fixed pitch, so patterns are made by rhythm only
+- Active buzzer on GPIO7 (as built; the draft said GPIO15), + to GPIO7 and − to GND, direct drive (2 mA measured at 3.3 V). An active buzzer has one fixed pitch, so patterns are made by rhythm only
 - Camera connectors: J2 (3-pin, power and S) and J3 (4-pin, signals), 2.54 mm polarised (§6.2); status LED (on-board WS2812 of the dev board, §9.3), USB-C of the dev board for firmware and serial console
 - Splash-resistant enclosure fixed to the camera bracket; grit and exhaust shielding for the camera
 
@@ -796,6 +796,17 @@ RLC-side parameters (`cam_lead_ms`, `cam_post_ms`, `cam_max_ms` and the ARM patt
 
 Logs: `captures/2026-11-06-rlc-arm-fire.log`, `captures/2026-11-06-rlc-shorts-poweroff.log` (not in git). Not run: T-24 (PRE_FIRE and pulse durations with the CRIG lines loaded and unloaded: needs a scope or logic analyser; the loaded runs match the RLC's own 3000 / 2000 / ~1050 ms timing) and the ERROR case of T-27 (RLC fault-injection build).
 
+**Look-and-listen check, 2026-11-06** (owner watching, consoles logged):
+
+| Check | Result |
+|---|---|
+| Resting state: remote green LED on, red off, RGB slow green; node RGB slow green; OLED main page | as expected |
+| Real SHOOT button: 5 taps and a 3 s hold | one burst per press, no bounce; motor, remote and node RGB red, `>> SHOOTING <<`, no tones during the burst. The green/red LEDs show readiness only and stay green while shooting (as designed) |
+| Node off and on (link loss) | remote: one 400 ms beep, red LED, RGB fast green, `NO LINK`; recovery beeps on link-up |
+| Node buzzer | silent at first: wired to **GPIO7**, firmware drove GPIO15. Firmware moved to GPIO7 (FR-N18); boot beep lengthened to 200 ms and link-up to 2 × 100 ms so they are noticed |
+| DIN cable unplugged and replugged | remote: 300/150/300 ms beeps, red LED, RGB orange, `RLC LOST`; new: 2 × 100 ms beeps when the RLC comes back |
+| Remote cutoff and deep sleep (FR-R11, simulated 3.0 V cell) | present 2.3 s, cutoff 3.0 s later, shutdown 10.0 s after that, USB gone = deep sleep, wakes on EN. First run: the OLED stayed lit (it is powered from 3V3 in deep sleep; the display task also redrew the main page over the empty message). Fixed: the display task stops, the message shows 2 s, then display off + charge pump off before sleep |
+
 
 ## 15. Open items
 
@@ -810,7 +821,7 @@ Logs: `captures/2026-11-06-rlc-arm-fire.log`, `captures/2026-11-06-rlc-shorts-po
 | O-7 | ~~Node power option~~ — closed: node pack powers node and camera; camera battery removed, leads soldered to its terminals (§11.3) |
 | O-8 | Verify on the physical RLC base that **GPIO39 (TRIG) and GPIO41 (ARM)** are unconnected. Chosen 2026-11-03 from the RLC spec App. C.1 spares (38, 39, 41), cross-checked against the RLC `pin_config.h` (base uses 1, 2, 4–18, 21, 40, 42, 47, 48) and the DevKitC-1 N16R8 reserved pins; GPIO38 kept spare (on-board RGB on v1.1 boards; the base is v1.0, LED on GPIO48) |
 | O-20 | RLC side of the interface (Appendix A, v0.17): hand-off `docs/RLC_change_request_CRIG.md` to the RLC project; implement, test (T-21…T-27) |
-| O-21 | Firmware v0.19 has not been tested with a person present, and some features are not implemented yet. **Not tested:** the real SHOOT button debounce; RLC interface T-24 and the ERROR case of T-27 (T-21–T-23, T-25, T-26, the rest of T-27 and RLC T-C08 passed on the bench 2026-11-06, §14.5); what the LEDs, RGB patterns, buzzer tones and motor look and sound like; deep sleep at remote cutoff; the camera (frames, standby wake, PREPARE effect). **Not implemented:** camera power control (`cam_power_ctrl`, §6.3; stays off); optional keep-alive (`t_keepalive_interval`, default off); CAL / servo actuator (option A); NVS storage of parameters; final buzzer tone patterns (O-17, provisional tones in use) |
+| O-21 | Firmware v0.19 has not been tested with a person present, and some features are not implemented yet. **Not tested:** the real SHOOT button debounce; RLC interface T-24 and the ERROR case of T-27 (T-21–T-23, T-25, T-26, the rest of T-27 and RLC T-C08 passed on the bench 2026-11-06, §14.5); the camera (frames, standby wake, PREPARE effect). The SHOOT button, LEDs, RGB patterns, buzzer tones, motor and deep sleep were checked on 2026-11-06 (§14.5). **Not implemented:** camera power control (`cam_power_ctrl`, §6.3; stays off); optional keep-alive (`t_keepalive_interval`, default off); CAL / servo actuator (option A); NVS storage of parameters; final buzzer tone patterns (O-17, provisional tones in use) |
 | O-9 | Location of the 5-pin DIN socket (AD322) on the RLC base panel |
 | O-10 | ~~Isolated DC-DC converter~~ — closed: no longer needed; the remote has its own battery and the interface is fully optically isolated |
 | O-11 | Measure the D3000's actual current draw (standby, meters active, during a burst) and update the §11.3 budget |
@@ -876,7 +887,7 @@ T-21 to T-27 (§14.2), to be added to the RLC test specification with RLC-side I
 | 0.1 | 2026-09-27 | Initial draft |
 | 0.2 | 2026-09-27 | Added node power options, closed O-4, added O-7 |
 | 0.3 | 2026-09-27 | Two scenarios (RLC automatic / third-party manual); CRIG remote as the node's only controller; wired RLC interface with power from the base battery and single TRIG line; default channel changed to 1 (RLC on 11), O-2 closed; camera wake handled by the node only; no pad matching; integration tests; Appendix A RLC change request |
-| 0.20 | 2026-11-06 | RLC interface on the bench (U4, U6 and the DIN socket fitted, RLC fw 1.2.22): the ARM input showed about four falling edges per pulse (optocoupler turn-off), so the remote now samples ARM every 1 ms with a 3 ms debounce (FR-R10 note); with the edge interrupt the 10 Hz armed pattern would never have decoded. New HIL tests R01–R02 against the real base (§14.5); O-21 updated; arm-and-fire bench session with the real RLC (T-21, T-22, T-26, T-27 except ERROR, RLC T-C08 all pass, §14.5; then T-23 and T-25 pass); node no longer gives a wake pulse straight after a burst (FR-N19) |
+| 0.20 | 2026-11-06 | RLC interface on the bench (U4, U6 and the DIN socket fitted, RLC fw 1.2.22): the ARM input showed about four falling edges per pulse (optocoupler turn-off), so the remote now samples ARM every 1 ms with a 3 ms debounce (FR-R10 note); with the edge interrupt the 10 Hz armed pattern would never have decoded. New HIL tests R01–R02 against the real base (§14.5); O-21 updated; arm-and-fire bench session with the real RLC (T-21, T-22, T-26, T-27 except ERROR, RLC T-C08 all pass, §14.5; then T-23 and T-25 pass); node no longer gives a wake pulse straight after a burst (FR-N19); look-and-listen check passed (§14.5): node buzzer on GPIO7 as wired (FR-N18), longer node beeps, RLC-restored beep on the remote, OLED switched off before deep sleep |
 | 0.19 | 2026-11-03 | Firmware v0.19 written and tested (`firmware/crig`, §14.5: 30 host checks, HIL H01–H17 all pass). Spec additions from the implementation: STATUS fault bits 5 NO_PACK and 6 PREPARING (§7.3); node no-pack rule below 2.0 V (FR-N10); remote no-cell rule below 2.5 V, battery measured only with the motor off, 3 s cutoff persistence and 10 s to deep sleep (FR-R11); node LED on GPIO48 and GPIO38 (§9.3); parameters compile-time in `crig_config.h` (§13, new rows); O-21 added; T-27 accepts the RLC as-built LOW-phase pattern start (first 1 Hz pulse ~950 ms after a disarm) |
 | 0.18 | 2026-11-03 | RLC interface connector: GX12-4 replaced by a **5-pin DIN 180°** pair from Gotron (AD322 female chassis socket on base and remote, AD302 male plastic cable plug on both cable ends; ≈ €5.60), pinout 1 = TRIG+, 2 = COM− (centre), 3 = ARM+, 4/5 n.c.; weatherproofing dropped (sheltered placement, safe failure on unplug), straight-through cable rule (§8.2); radio channel rule made explicit (RR-02, RR-05, §7.5: RLC verified on channel 11, CRIG channel 1, fallback 6, ≥ 5 channels apart); RLC review answers (§8.5, App. A F-3/F-4/F-7): once FIRING is entered TRIG always ends via the post timer (incl. pulse completed on link loss and mid-pulse aborts), ARM 1 Hz in LINK_LOST too, `cam_trig_on_firing_enter()` hook, JTAG-pin boot note; T-12, T-17, T-25, H-1, H-3, H-4, O-9, §9.2, §12.2 updated |
 | 0.17 | 2026-11-03 | RLC interface reworked (§8 rewritten, Appendix A rewritten): second optocoupler and signal **ARM** (base GPIO41 → remote IO6) next to TRIG (base GPIO39 → remote IO5); GX12-4 pinout TRIG+ / ARM+ / COM− / n.c.; DET loop dropped; ARM heartbeat patterns (none = not connected, 1 Hz = connected, 10 Hz = armed) with decoder rules (§8.3); TRIG accepted only while ARM = armed (§8.6, FR-R02, FR-R10); RLC status NONE / CONNECTED / ARMED / LOST (FR-R12); PREPARE flag in HEARTBEAT/SHOOT (FR-R15, §7.3) and node camera preparation (FR-N19, §6.3); new parameters `t_arm_lost`, `t_prepare_wake`, `t_prepare_keepalive`; tests T-12, T-13, T-15, T-21…T-23, T-25 revised, T-17…T-19, T-26, T-27 added; O-8 updated (GPIO39/41 chosen), O-20 added; hand-off `docs/RLC_change_request_CRIG.md` |

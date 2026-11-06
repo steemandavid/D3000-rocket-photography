@@ -387,3 +387,12 @@ David measured the S contact to − on the original EN-EL9a (out of the camera):
 - **Node fix:** an extra 300 ms wake pulse came straight after every burst (PREPARE still 1 while the remote waits ~0.3 s to see ARM drop). `end_burst()` now pushes the next wake pulse out by `t_prepare_keepalive`; H07 checks it. HIL 17/17 after the change.
 - Not run: T-23 (power off with TRIG high), T-24, T-25, T-27 ERROR (RLC fault-injection build).
 - **T-25 and T-23 (same day):** ARM short (base idle) → CRIG LOST at 2.49 s, recovers, base unaffected; TRIG short during a full fire sequence → base timing unchanged (3000 / 2000 / 1050 ms), CRIG burst pauses while shorted; base switched off mid-countdown with TRIG HIGH → CRIG stops at once, LOST at 2.48 s, no glitches, 1 Hz again after the reboot. All PASS. Log `captures/2026-11-06-rlc-shorts-poweroff.log`. Remaining: T-24 (scope) and T-27 ERROR (RLC fault-injection build).
+
+### 2026-11-06 (cont.) — look-and-listen check
+
+- Owner watched and listened while the consoles were logged. Passed: resting state, real SHOOT button (5 taps + 3 s hold, one burst per press, no bounce), link loss and recovery, RLC cable unplug and replug, remote cutoff and deep sleep.
+- **Node buzzer silent:** wired to **GPIO7**, firmware (and the bring-up firmware) drove GPIO15. Firmware moved to GPIO7; spec FR-N18, node schematic SVG and PNG (regenerated with cairosvg) updated. Node boot beep 200 ms, link-up 2 × 100 ms (were 80 / 40 ms).
+- **New:** remote beeps 2 × 100 ms when the RLC comes back after LOST (owner request). Console `beep <ms>` on both units, `reboot` on the node (HIL can now drive the node on its native USB port).
+- **Deep sleep fix:** the OLED stayed lit in deep sleep (powered from 3V3) and the display task overwrote the shutdown message. Now the display task stops, `REMOTE BATT EMPTY` shows for 2 s, then display off and charge pump off before sleep. Rechecked: OLED dark.
+- Readiness LEDs stay green while shooting: as designed (motor, RGB and OLED show shooting).
+- Regression: host 30/30; HIL 16/16 with the node on its native port, then with both CRIG units back on their UART bridges the full suite H01–H17 + R01–R02 **19/19 pass**.

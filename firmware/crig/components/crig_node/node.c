@@ -3,7 +3,7 @@
  *
  *   IO1  VBAT sense (100k / 47k)      IO4  FULL  -> U3 PC817 (camera WHT)
  *   IO5  HALF  -> U4 PC817 (YEL)      IO6  PWR   -> U5 PC817 (GRN), never driven (cam_power_ctrl off)
- *   IO15 buzzer (active)              IO48 + IO38 on-board WS2812 (both driven: board revision not recorded)
+ *   IO7 buzzer (active)               IO48 + IO38 on-board WS2812 (both driven: board revision not recorded)
  *
  * Console (UART0, 115200): help | status | test.  Events are logged as "EVT <ms> <what> ..." for the HIL tests.
  */
@@ -33,7 +33,7 @@
 #define PIN_FULL   4
 #define PIN_HALF   5
 #define PIN_PWR    6
-#define PIN_BUZ    15
+#define PIN_BUZ    7          /* as wired (2026-11-06); the draft schematic said IO15 */
 #define PIN_LED_A  48
 #define PIN_LED_B  38
 #define VBAT_NUM   147
@@ -164,7 +164,7 @@ static void tick(void)
     if (lu != s_link) {
         s_link = lu;
         evt("link %s", lu ? "up" : "down");
-        static const uint16_t up[] = { 40, 60, 40 }, down[] = { 400 };
+        static const uint16_t up[] = { 100, 100, 100 }, down[] = { 400 };
         if (lu) buzz(up, 3); else { buzz(down, 1); s_prep_req = false; }
     }
 
@@ -293,9 +293,14 @@ static void console(void)
         printf("OK sim vbat %d\n", s_sim_vbat);
     }
 #endif
+    else if (!strncmp(l, "beep ", 5)) {      /* buzzer check: one tone of <ms> (silent while shooting) */
+        uint16_t ms[] = { (uint16_t)atoi(l + 5) };
+        buzz(ms, 1); printf("OK beep %u\n", ms[0]);
+    }
+    else if (!strcmp(l, "reboot")) { printf("OK reboot\n"); fflush(stdout); vTaskDelay(pdMS_TO_TICKS(50)); esp_restart(); }
     else if (!strcmp(l, "scan")) crig_link_scan();
     else if (!strcmp(l, "bcast")) crig_link_bcast_test(20);
-    else if (!strcmp(l, "help")) printf("commands: status | test | scan | bcast | sim vbat <mv>|real\n");
+    else if (!strcmp(l, "help")) printf("commands: status | test | scan | bcast | beep <ms> | reboot | sim vbat <mv>|real\n");
     else printf("ERR unknown '%s'\n", l);
 }
 
@@ -318,7 +323,7 @@ void crig_node_main(void)
     ESP_ERROR_CHECK(crig_link_init(peer, rx_cb));
     set_state(NODE_IDLE);                      /* FR-N02 */
     evt("boot shutter=%s", crig_shutter_name(s_shutter));
-    static const uint16_t boot[] = { 80 };
+    static const uint16_t boot[] = { 200 };
     buzz(boot, 1);
 
     int64_t t_slow = 0;

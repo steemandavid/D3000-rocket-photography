@@ -50,6 +50,12 @@ bool oled_init(int sda, int scl)
 
 void oled_clear(void) { memset(s_fb, 0, sizeof s_fb); }
 
+void oled_off(void)
+{
+    static const uint8_t off[] = { 0xAE, 0x8D, 0x10 };   /* display off, charge pump off: ~uA instead of mA */
+    if (s_ok) cmds(off, sizeof off);
+}
+
 void oled_text(int col, int row, const char *s)
 {
     if (row < 0 || row > 7) return;
