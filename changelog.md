@@ -14,7 +14,7 @@ David soldered up the CRIG remote; validate the hardware with a test firmware an
 
 | GPIO | Function | Wire |
 |---|---|---|
-| IO1 | Battery sense | geel/blauw (actually soldered to IO13 until 2026-11-06) |
+| IO1 | Battery sense | geel/blauw (this wire was soldered to IO13 until 2026-11-06, then moved to IO1) |
 | IO4 | SHOOT button | groen/zwart |
 | IO5 | TRIG (PC817) | grijs/wit (David first said IO3, corrected) |
 | IO8 / IO9 | OLED SDA / SCL | blauw/wit / wit/blauw |
