@@ -369,3 +369,21 @@ David measured the S contact to − on the original EN-EL9a (out of the camera):
 5. **RLC feedback:** the RLC starts each new ARM pattern in its LOW phase (first 1 Hz pulse ~950 ms after a disarm). Accepted: the CRIG decoder already handles it (ARMED drops 300 ms after the last fast pulse; CONNECTED is held); host test added; T-27 and the hand-off doc updated.
 
 **Notes:** HIL burst tests take real pictures if the camera is attached. The node read 8.2 V with USB connected — don't power it from the pack and USB at the same time.
+
+## 2026-11-06 — RLC interface on the bench
+
+1. **Setup:** owner fitted U4/U6 and the DIN socket on the remote's side and the cable to the RLC base (RLC fw 1.2.22). All four units on USB: RLC base `5B5E042156` (UART bridge), RLC remote native USB `AC:A7:…`, CRIG node UART bridge, **CRIG remote on its native USB port** (`68:EE:8F:47:96:D4`).
+2. **Console on native USB:** `crig_console` also reads the USB-Serial/JTAG RX FIFO (LL, no driver); new `reboot` command; `flash.sh` and `hil.py` fall back to the native port (opened raw, never touching DTR/RTS).
+3. **Bug found — ARM input bounced:** with the real base, the remote saw falling edges 100 ms apart (periods 100 + 900 ms at 1 Hz; raw interrupt count ~4 per pulse) — the PC817 turn-off edge. At 10 Hz (50/50 ms) the decoder would have seen 50 ms periods and **never decoded ARMED**, so TRIG would never have been accepted. Fix: ARM sampled every 1 ms by an esp_timer with a 3 ms debounce; the interrupt only counts raw edges (`aisr` in `status`).
+4. **New HIL tests:** R01 (real idle ARM 1 Hz → CONNECTED, TRIG idle) and R02 (RLC base reset: no pulses during boot, 1 Hz within 2 s; = CRIG T-26 / RLC T-C06). `hil.py rlc` runs them.
+5. **Results:** HIL H01–H17 + R01–R02 **19/19 pass**; CRIG host 30/30; RLC host 583 checks, 0 failures (incl. T-CAM01–10). RLC remote linked, IDLE, 0 missed pings after the base resets.
+6. **Docs:** spec v0.20 (FR-R10 note, §14.5 R01/R02, O-21), handoff D36, README, `docs/RLC_change_request_CRIG.md` §9 (results for the RLC session), `~/claudecode/usb-devices.md` (RLC base by-id corrected, CRIG remote native port).
+
+**Still needs a person:** arm and fire the RLC into an inert igniter tester (T-21/T-C01, T-22/T-C02, T-27/T-C07, T-C08), power-off with TRIG high (T-23), loading (T-24), shorts (T-25).
+
+### 2026-11-06 (cont.) — arm-and-fire bench session
+
+- Guided session, owner arming and firing the RLC into an inert igniter tester on CH1, all four consoles logged (`captures/2026-11-06-rlc-arm-fire.log`, git-ignored). **All pass:** T-21 ×2, T-22a, T-22b, T-27 (arm, arm timeout, key off), RLC T-C08 ×2. Key numbers: first 10 Hz pulse 22 ms after ARMED; TRIG HIGH at PRE_FIRE + 3000 ms, LOW at pulse end + 3000 ms; abort in PRE_FIRE drops TRIG in the same ms; first 1 Hz pulse 956 ms after disarm. The debounced ARM input showed clean 99–101 ms periods at 10 Hz.
+- **Node fix:** an extra 300 ms wake pulse came straight after every burst (PREPARE still 1 while the remote waits ~0.3 s to see ARM drop). `end_burst()` now pushes the next wake pulse out by `t_prepare_keepalive`; H07 checks it. HIL 17/17 after the change.
+- Not run: T-23 (power off with TRIG high), T-24, T-25, T-27 ERROR (RLC fault-injection build).
+- **T-25 and T-23 (same day):** ARM short (base idle) → CRIG LOST at 2.49 s, recovers, base unaffected; TRIG short during a full fire sequence → base timing unchanged (3000 / 2000 / 1050 ms), CRIG burst pauses while shorted; base switched off mid-countdown with TRIG HIGH → CRIG stops at once, LOST at 2.48 s, no glitches, 1 Hz again after the reboot. All PASS. Log `captures/2026-11-06-rlc-shorts-poweroff.log`. Remaining: T-24 (scope) and T-27 ERROR (RLC fault-injection build).

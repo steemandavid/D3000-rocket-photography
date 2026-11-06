@@ -121,3 +121,26 @@ The CRIG IDs are in brackets. Run them with a logic analyser or scope on pins 1�
 - Any deviation from §5 timing.
 
 The CRIG side then closes O-8, O-9 and O-20 and adapts its decoder if needed.
+
+## 9. CRIG bench results (2026-11-06, RLC fw 1.2.22)
+
+With the CRIG remote on the DIN cable (U4, U6 fitted), `firmware/crig/tests/hil/hil.py rlc`:
+
+| CRIG test | RLC test | Result |
+|---|---|---|
+| R01: idle ARM pattern through U6 | idle part of T-C01 | **PASS**: CRIG reads CONNECTED; ARM periods 999–1000 ms; TRIG line idle |
+| R02: base reset | T-C06 | **PASS**: no pulses during boot; `rlc_cam` up 1.16 s, first ARM pulse 1.18 s after the reset, then 1.00 s periods; TRIG stayed low |
+
+Your LOW-phase pattern start (§15.6) is accepted; the CRIG decoder handles it (host test "LOW-start disarm"). Nothing
+to change on the RLC side. A CRIG-side finding for the record: the optocoupler output bounced at each pulse end, and
+the CRIG firmware now debounces the ARM input. Arm-and-fire session the same day (inert igniter tester on CH1, all four consoles logged), base clock:
+
+| RLC test | Result |
+|---|---|
+| T-C01 [T-21] | **PASS** ×2: TRIG HIGH at PRE_FIRE + 3000 ms, LOW at pulse end + 3000 ms; ARM back to 1 Hz with TRIG LOW, 0.96 s after POST_FIRE → IDLE |
+| T-C02 [T-22] (a) fire released, (b) key off | **PASS**: "TRIG cancelled before FIRING" in the same ms as the abort; ARM to idle at once |
+| T-C07 [T-27] arm, disarm by arm timeout, key off | **PASS**: first 10 Hz pulse 22 ms after ARMED; first 1 Hz pulse 956 ms after disarm. ERROR case not run (needs the fault-injection build) |
+| T-C08 | **PASS** ×2 (fire released 0.46 s and 0.8 s into the pulse): TRIG LOW at abort + 3000 ms, ARM 10 Hz until then |
+| T-C03 [T-23] | **PASS**: base switched off in PRE_FIRE with TRIG HIGH; both lines LOW at once, no glitch at power-off or power-on, no pulses during the reboot |
+| T-C05 [T-25] | **PASS**: ARM short with the base idle and TRIG short during a full fire sequence: base timing unchanged (3000 / 2000 / 1050 ms), no error, link and continuity normal. Current not measured |
+| T-C04 [T-24] | not run (needs a scope; with the CRIG loaded the timing matched the FSD every run) |

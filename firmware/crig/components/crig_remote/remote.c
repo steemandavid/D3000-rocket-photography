@@ -56,6 +56,8 @@ static volatile uint32_t s_rx_bad;
 static deb_t   s_btn_d, s_trig_d;
 static int     s_sim_shoot = -1, s_sim_trig = -1, s_sim_arm = -1;   /* -1 = real input */
 static esp_timer_handle_t s_sim_arm_tmr;
+static volatile int64_t s_arm_last_edge, s_arm_last_per;   /* real ARM line (debounced pulse starts) */
+static volatile uint32_t s_arm_edges;
 static armdec_t s_armdec;
 static arm_state_t s_arm = ARM_NONE;
 
@@ -163,12 +165,29 @@ static int link_quality(int64_t t)
 }
 
 /* ------------------------------------------------------------------ inputs */
-static void IRAM_ATTR arm_isr(void *arg)
+/* The ARM line is sampled every 1 ms and debounced (ARM_DEB_MS) instead of using an edge interrupt:
+   the PC817 turns off slowly against the internal pull-up, and that slow, noisy rising edge at the end
+   of each pulse produced a second falling-edge interrupt (bench, 2026-11-06: periods 100 + 900 ms at
+   1 Hz; at 10 Hz every 50 ms, so ARMED could never be decoded). A pulse start = debounced high -> low;
+   its time is that of the first low sample. The interrupt stays only to count raw edges (aisr). */
+#define ARM_DEB_MS 3
+static volatile uint32_t s_arm_isr;
+static void IRAM_ATTR arm_isr(void *arg) { s_arm_isr++; }
+
+static void arm_poll_cb(void *arg)
 {
+    static int stable = 1, cnt;
+    static int64_t t_first;
+    int lv = gpio_get_level(PIN_ARM);
     int64_t t = esp_timer_get_time();
-    BaseType_t w = pdFALSE;
-    if (s_sim_arm < 0) xQueueSendFromISR(s_edgeq, &t, &w);
-    if (w) portYIELD_FROM_ISR();
+    if (lv == stable) { cnt = 0; return; }
+    if (cnt++ == 0) t_first = t;
+    if (cnt < ARM_DEB_MS) return;
+    stable = lv; cnt = 0;
+    if (lv) return;                          /* pulse end */
+    if (s_arm_last_edge) s_arm_last_per = t_first - s_arm_last_edge;
+    s_arm_last_edge = t_first; s_arm_edges++;
+    if (s_sim_arm < 0) xQueueSend(s_edgeq, &t_first, 0);
 }
 
 static void sim_arm_cb(void *arg)
@@ -180,6 +199,10 @@ static void sim_arm_cb(void *arg)
 static void sim_arm_set(int mode)          /* -1 real, 0 no pulses, 1 = 1 Hz, 10 = 10 Hz */
 {
     esp_timer_stop(s_sim_arm_tmr);
+    if ((mode < 0) != (s_sim_arm < 0)) {     /* switching between the real line and the simulator: */
+        xQueueReset(s_edgeq);                /* start from a clean decoder (NONE); sim-to-sim keeps */
+        armdec_init(&s_armdec, MS(T_ARM_LOST_MS));   /* its state so disarm/hold timing is tested */
+    }
     s_sim_arm = mode;
     if (mode == 1) esp_timer_start_periodic(s_sim_arm_tmr, 1000000);
     else if (mode == 10) esp_timer_start_periodic(s_sim_arm_tmr, 100000);
@@ -328,12 +351,15 @@ static int parse01(const char *v) { return !strcmp(v, "real") ? -1 : atoi(v) != 
 static void print_status(void)
 {
     printf("STATUS link=%d fresh=%d q=%d node=%s sh=%s nv=%u nf=0x%02x nrssi=%d rssi=%d burst=%lu arm=%s btn=%d trig=%d "
-           "req=%d act=%d nr=%d src=%s batt=%d usb=%d ready=%d rx=%lu bad=%lu txerr=%lu foreign=%lu txfail=%lu txdel=%lu\n",
+           "req=%d act=%d nr=%d src=%s batt=%d usb=%d ready=%d rx=%lu bad=%lu txerr=%lu foreign=%lu txfail=%lu txdel=%lu "
+           "aedges=%lu aper=%ld aage=%ld aisr=%lu simarm=%d\n",
            s_link, s_fresh, s_quality, crig_state_name(s_node.state), crig_shutter_name(s_node.shutter), s_node.vbat_mv,
            s_node.fault, s_node.rssi, s_rx_rssi, (unsigned long)s_node.burst_ms, armdec_name(s_arm), s_btn, s_trig,
            s_request, s_active, s_need_release, s_src == CRIG_SRC_TRIG ? "TRIG" : "BUTTON", s_batt_mv, s_usb_only, s_ready,
            (unsigned long)s_rx_ok, (unsigned long)s_rx_bad, (unsigned long)s_tx_err,
-           (unsigned long)crig_link_foreign_count(), (unsigned long)crig_link_tx_fail(), (unsigned long)crig_link_tx_delivered());
+           (unsigned long)crig_link_foreign_count(), (unsigned long)crig_link_tx_fail(), (unsigned long)crig_link_tx_delivered(),
+           (unsigned long)s_arm_edges, (long)(s_arm_last_per / 1000),
+           s_arm_last_edge ? (long)((esp_timer_get_time() - s_arm_last_edge) / 1000) : -1L, (unsigned long)s_arm_isr, s_sim_arm);
 }
 
 static void console(void)
@@ -345,7 +371,8 @@ static void console(void)
     else if (!strcmp(l, "screen")) { for (int i = 0; i < 8; i++) printf("SCREEN %d |%s|\n", i, s_screen[i]); }
     else if (!strcmp(l, "scan")) crig_link_scan();
     else if (!strcmp(l, "bcast")) crig_link_bcast_test(20);
-    else if (!strcmp(l, "help")) printf("commands: status | screen | scan | bcast | sim shoot|trig 0|1|real | sim arm none|1|10|real | sim batt <mv>|real | sim badcrc\n");
+    else if (!strcmp(l, "reboot")) { printf("OK reboot\n"); fflush(stdout); vTaskDelay(pdMS_TO_TICKS(50)); esp_restart(); }
+    else if (!strcmp(l, "help")) printf("commands: status | screen | scan | bcast | reboot | sim shoot|trig 0|1|real | sim arm none|1|10|real | sim batt <mv>|real | sim badcrc\n");
 #if CONFIG_CRIG_TEST_HOOKS
     else if (!strncmp(l, "sim ", 4) && n >= 1) {
         if (!strcmp(a, "shoot") && n == 2) { s_sim_shoot = parse01(b); printf("OK sim shoot %d\n", s_sim_shoot); }
@@ -391,6 +418,10 @@ void crig_remote_main(void)
     esp_timer_create(&ta, &s_sim_arm_tmr);
     gpio_install_isr_service(0);
     gpio_isr_handler_add(PIN_ARM, arm_isr, NULL);
+    esp_timer_create_args_t tp = { .callback = arm_poll_cb, .name = "armpoll" };
+    esp_timer_handle_t tpoll;
+    esp_timer_create(&tp, &tpoll);
+    esp_timer_start_periodic(tpoll, 1000);
     static const uint8_t peer[6] = CRIG_NODE_MAC;
     ESP_ERROR_CHECK(crig_link_init(peer, rx_cb));
     batt_update(now_us());

@@ -130,6 +130,9 @@ static void end_burst(uint8_t next, const char *why)
     if (s_shutter == SH_FULL) s_burst_ms = (uint32_t)((now_us() - s_t_full) / 1000);
     set_shutter(SH_REST);
     set_state(next);
+    /* the camera is awake after a burst: no wake pulse straight after it (seen on the RLC bench: PREPARE
+       is still 1 for the ~0.3 s the remote needs to see the ARM pattern drop after TRIG) */
+    s_prep_next = now_us() + MS(T_PREPARE_KEEPALIVE_MS);
     evt("burst end ms=%lu reason=%s", (unsigned long)s_burst_ms, why);
 }
 

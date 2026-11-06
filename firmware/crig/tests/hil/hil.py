@@ -9,10 +9,14 @@ Timing is taken from each board's own "EVT <ms>" timestamps where both events co
 board, and from host receive times across boards.
 NOTE: if the camera is connected to the node, the burst tests take real pictures.
 """
-import re, sys, time, threading, serial
+import os, re, sys, time, threading, termios, select, serial
 
-PORTS = {'node': '/dev/serial/by-id/usb-1a86_USB_Single_Serial_5CCC062602-if00',
-         'remote': '/dev/serial/by-id/usb-1a86_USB_Single_Serial_5CCC062258-if00'}
+BYID = '/dev/serial/by-id/'
+PORTS = {'node': BYID + 'usb-1a86_USB_Single_Serial_5CCC062602-if00',
+         'remote': BYID + 'usb-1a86_USB_Single_Serial_5CCC062258-if00'}
+NATIVE = {'node': BYID + 'usb-Espressif_USB_JTAG_serial_debug_unit_68:EE:8F:47:8E:C8-if00',
+          'remote': BYID + 'usb-Espressif_USB_JTAG_serial_debug_unit_68:EE:8F:47:96:D4-if00'}
+RLC_BASE = BYID + 'usb-1a86_USB_Single_Serial_5B5E042156-if00'     # RLC base UART bridge (RLC tests R01-R03)
 EVT = re.compile(r'^EVT (\d+) (.*)$')
 
 
@@ -81,6 +85,69 @@ class Dev:
         return dict(kv.split('=', 1) for kv in r[2].split()[1:] if '=' in kv)
 
 
+class NativeDev(Dev):
+    """Board on its native USB-Serial/JTAG port. The tty is opened raw and the control lines are never
+    touched (they would put the chip in download mode); reset = console 'reboot', and the reader
+    reopens the port after the USB re-enumeration."""
+    def __init__(self, name, port):
+        self.name, self.port, self.fd = name, port, None
+        self.lines, self.lock, self.run = [], threading.Lock(), True
+        self._open()
+        threading.Thread(target=self._rd, daemon=True).start()
+
+    def _open(self):
+        end = time.time() + 8
+        while time.time() < end:
+            try:
+                fd = os.open(self.port, os.O_RDWR | os.O_NOCTTY | os.O_NONBLOCK)
+                a = termios.tcgetattr(fd)
+                a[0] = a[1] = a[3] = 0
+                a[2] = termios.CS8 | termios.CREAD | termios.CLOCAL
+                termios.tcsetattr(fd, termios.TCSANOW, a)
+                self.fd = fd
+                os.write(fd, b'\n')          # flush anything the tty echoed before raw mode
+                return
+            except OSError:
+                time.sleep(0.05)
+        raise Fail(f'{self.name}: cannot open {self.port}')
+
+    def _rd(self):
+        buf = b''
+        while self.run:
+            try:
+                r, _, _ = select.select([self.fd], [], [], 0.05)
+                if r:
+                    d = os.read(self.fd, 4096)
+                    if not d:
+                        raise OSError('eof')
+                    buf += d
+            except (OSError, ValueError):
+                try: os.close(self.fd)
+                except OSError: pass
+                time.sleep(0.1); self._open(); buf = b''
+                continue
+            while b'\n' in buf:
+                l, buf = buf.split(b'\n', 1)
+                with self.lock:
+                    self.lines.append((time.time(), l.decode(errors='replace').strip()))
+
+    def send(self, line):
+        try: os.write(self.fd, (line + '\n').encode())
+        except OSError: pass
+
+    def reset(self, hold=0.1):
+        self.send('reboot')
+
+    def hold(self, on):
+        if on: raise Fail(f'{self.name}: cannot hold a native-USB board in reset')
+
+
+def open_dev(name):
+    if os.path.exists(PORTS[name]):
+        return Dev(name, PORTS[name])
+    return NativeDev(name, NATIVE[name])
+
+
 class Fail(Exception):
     pass
 
@@ -104,6 +171,7 @@ def boot_both():
     node.reset(); remote.reset()
     need(remote.wait(r'^link up', 6, m_r), 'remote link up after reset')
     need(node.wait(r'^link up', 6, m_n), 'node link up after reset')
+    remote.send('sim arm none')
     time.sleep(2.5)
 
 
@@ -111,6 +179,7 @@ def reset_remote():
     m = remote.mark()
     remote.reset()
     need(remote.wait(r'^link up', 6, m), 'remote link up after remote reset')
+    remote.send('sim arm none')          # the real ARM line may be connected: start every test from NONE
     time.sleep(2.5)
 
 
@@ -123,6 +192,7 @@ def idle():
     time.sleep(0.5)
     if remote.status().get('arm') != 'NONE':
         reset_remote()
+        remote.send('sim trig 0'); remote.send('sim shoot 0'); time.sleep(0.1)
 
 
 # ---------------------------------------------------------------- tests
@@ -279,6 +349,8 @@ def H07():
     r = need(node.wait(r'^shutter REST', 1.2, mn3), 'node REST')
     check(st[0] - t <= 0.45, f'pattern stop -> shoot stop {1000*(st[0]-t):.0f} ms <= 450')
     check(r[0] - t <= 0.9, f'pattern stop -> node REST {1000*(r[0]-t):.0f} ms <= 900')
+    time.sleep(1.0)
+    check(not node.find(r'^prepare pulse', mn3), 'no wake pulse straight after the burst')
     remote.send('sim trig 0')
     return f'armed->shoot {1000*(s[0]-a[0]):.0f} ms, stop {1000*(st[0]-t):.0f} ms, REST {1000*(r[0]-t):.0f} ms'
 
@@ -489,15 +561,86 @@ def H17():
     return ' / '.join(sc.get(i, '') for i in range(8) if sc.get(i))
 
 
+# ------------------------------------------------ tests with the real RLC base on the DIN cable
+def arm_edges(samples):
+    """Edge times (host clock) from status samples: (t_host, aedges, aage_ms)."""
+    out, last = [], None
+    for t, n, age in samples:
+        if n != last and age >= 0:
+            out.append(t - age / 1000.0); last = n
+    return out
+
+
+def sample_remote(secs, every=0.1):
+    smp, end = [], time.time() + secs
+    while time.time() < end:
+        st = remote.status()
+        if st:
+            smp.append((time.time(), int(st['aedges']), int(st['aage']), st))
+        time.sleep(every)
+    return smp
+
+
+def R01():
+    """Real RLC base idle: ARM 1 Hz through U6 -> CONNECTED; TRIG line idle; nothing shoots (T-21 idle part, T-17)"""
+    idle()
+    mr, mn = remote.mark(), node.mark()
+    t0 = time.time()
+    remote.send('sim trig real'); remote.send('sim arm real')
+    c = need(remote.wait(r'^rlc CONNECTED', 2.8, mr), 'CONNECTED from the real ARM line')
+    smp = sample_remote(6.0, 0.2)
+    per = sorted({int(x[3]['aper']) for x in smp})
+    check(all(970 <= p <= 1030 for p in per), f'ARM periods {per} ms (1000)')
+    n = smp[-1][1] - smp[0][1]
+    check(5 <= n <= 7, f'{n} edges in 6 s')
+    check(all(x[3]['trig'] == '0' for x in smp), 'TRIG line idle (opto off)')
+    check(all(x[3]['arm'] == 'CONNECTED' for x in smp), 'stays CONNECTED')
+    check(all(x[3]['ready'] == '1' for x in smp), 'ready')
+    check(not remote.find(r'^shoot start', mr) and not node.find(r'^shutter (HALF|FULL)', mn), 'nothing shoots')
+    return f'CONNECTED {c[0]-t0:.2f} s after switching to the real line, periods {per} ms'
+
+
+def R02():
+    """RLC base reset: no ARM/TRIG pulses while it boots, 1 Hz back within 2 s, CRIG never armed (T-26 / RLC T-C06)"""
+    idle()
+    m = remote.mark()
+    remote.send('sim trig real'); remote.send('sim arm real')
+    need(remote.wait(r'^rlc CONNECTED', 2.8, m), 'CONNECTED before the base reset')
+    base = Dev('rlcbase', RLC_BASE)          # opening the bridge may itself reset the base: let it settle
+    time.sleep(4.0)
+    mb, mr, mn = base.mark(), remote.mark(), node.mark()
+    t0 = time.time()
+    base.reset()
+    smp = sample_remote(6.0, 0.05)
+    up = base.wait(r'rlc_cam: camera rig interface up', 0.1, mb)
+    base.run = False; base.s.close()
+    check(up is not None, 'base boot log shows the camera rig interface')
+    edges = arm_edges([(t, n, a) for t, n, a, _ in smp])
+    boot = [e for e in edges if t0 + 0.15 < e < up[0]]
+    check(not boot, f'no ARM pulses during base boot ({[round(e - t0, 2) for e in boot]})')
+    after = [e for e in edges if e > t0 + 0.15]
+    need(after or None, 'ARM pulses resume')
+    first = after[0] - t0
+    check(first <= 2.0, f'first ARM pulse {first:.2f} s after reset (<= 2 s)')
+    check(all(x[3]['trig'] == '0' for x in smp), 'TRIG line stayed low')
+    arms = {x[3]['arm'] for x in smp}
+    check('ARMED' not in arms, f'never ARMED ({arms})')
+    check(not remote.find(r'^shoot start', mr) and not node.find(r'^shutter (HALF|FULL)', mn), 'nothing shoots')
+    gaps = [round(b - a, 3) for a, b in zip(after, after[1:])]
+    return f'interface up {up[0]-t0:.2f} s, first pulse {first:.2f} s, then periods {gaps} s, RLC state seen {sorted(arms)}'
+
+
 TESTS = [H01, H02, H03, H04, H05, H06, H07, H08, H09, H10, H11, H12, H13, H14, H15, H16, H17]
+RLC_TESTS = [R01, R02]
 
 
 def main():
     global node, remote
     sel = sys.argv[1:]
-    node, remote = Dev('node', PORTS['node']), Dev('remote', PORTS['remote'])
+    node, remote = open_dev('node'), open_dev('remote')
     time.sleep(0.2)
-    todo = [t for t in TESTS if not sel or t.__name__ in sel]
+    sel = [a for a in sel if not a.startswith('-')]
+    todo = [t for t in TESTS + RLC_TESTS if (not sel and t in TESTS) or t.__name__ in sel or ('rlc' in sel and t in RLC_TESTS)]
     if todo[0] is not H01:
         boot_both()
     for t in todo:
@@ -515,7 +658,7 @@ def main():
                     print(f'  --- {d.name} log ({len(ev)} lines, last 25):')
                     for l in ev[-25:]:
                         print('   ', l[:150])
-            node.hold(False); remote.hold(False)
+            node.hold(False)
             remote.send('sim shoot 0'); remote.send('sim trig 0'); remote.send('sim arm none'); remote.send('sim batt real'); node.send('sim vbat real')
             time.sleep(1.0)
         print(f'{t.__name__} {results[-1][1]} ({time.time()-t0:.1f} s) {results[-1][2]}  — {t.__doc__}', flush=True)
