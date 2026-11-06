@@ -3,7 +3,7 @@
 | | |
 |---|---|
 | **Document** | Camera Rig (CRIG) — Functional Specification |
-| **Version** | 0.20 (draft) |
+| **Version** | 0.21 (draft) |
 | **Date** | 2026-11-03 |
 | **Author** | David Steeman |
 | **Status** | Draft — wired release (option B) selected; camera power validation open (O-12); remote simplified (no arming, SHOOT only) |
@@ -149,7 +149,7 @@ Out of scope:
 | FR-N07 | On a `test` command on the node's USB console while IDLE, the node shall perform one HALF → FULL → REST cycle with FULL held for `t_test_full`. (Since v0.15 the remote has no TEST button and the TEST packet is removed; a short tap on SHOOT serves as the field test.) |
 | FR-N08 | The node shall consider the link lost if no valid packet has been received for `t_link_lost`, and show this on its status LED (§9.3). Link state does not gate shooting: a valid SHOOT packet is itself proof of a link. |
 | FR-N09 | The node shall reply to every valid received packet with a STATUS packet. |
-| FR-N10 | The node shall measure the pack voltage and report it in STATUS. Below `v_node_warn` it shall set the low-battery warning flag; below `v_node_cutoff` it shall enter FAULT (REST; SHOOT and test cycles refused). A reading below `v_no_supply` (2.0 V) means no pack is connected (bench / USB power): the node then sets the NO_PACK flag and applies no cutoff (v0.19). |
+| FR-N10 | The node shall measure the pack voltage and report it in STATUS. Below `v_node_warn` it shall set the low-battery warning flag; below `v_node_cutoff` it shall enter FAULT (REST; SHOOT and test cycles refused). A reading below `v_no_supply` (4.5 V since v0.21; 2.0 V in v0.19–v0.20) means no pack is connected (bench / USB power): the node then sets the NO_PACK flag and applies no cutoff (v0.19). With only USB connected, 5 V back-feeds through the node's buck converter and puts ~3.7 V on +VBAT (measured 3.73 V at the pack connector, 2026-11-06), which the old 2.0 V threshold took for a flat pack (FAULT). |
 | FR-N11 | The node shall ignore any packet that fails MAC, magic, version or CRC checks, without reply. |
 | FR-N12 | The node shall indicate its state on a local status LED (§9.3). |
 | FR-N13 | The node shall supply the camera from its pack through the single pack fuse and main switch (§11.3). |
@@ -564,7 +564,7 @@ Implementation: the node uses the **on-board WS2812 (NeoPixel) RGB LED** of the 
 | Charger and protection | As built: 1S protection board (variant "S1") on the cell + power-bank module (LX-LBCE1, "5V 2.4A Type-C + USB") that charges via its own USB-C; details below. *(v0.15 plan: TP4056 with DW01A/FS8205A.)* |
 | Regulator | As built: the 5 V boost of the power-bank module, into the dev board 5V0 pin; dev board LDO for 3.3 V. *(v0.15 plan: MT3608-class boost set to 5.0 V.)* |
 | Flashing | Over the dev board USB with the power switch **off**; the board then runs from USB, and the 5V0 pin is then fed by USB as well as by the module if the switch is on; prefer switch off while flashing |
-| Monitoring | 100 kΩ / 100 kΩ divider on the switched battery to an ADC1 pin (IO1), 100 nF at the pin; `v_remote_warn` 3.5 V, `v_remote_cutoff` 3.2 V |
+| Monitoring | 100 kΩ / 100 kΩ divider on the switched battery to an ADC1 pin (IO1), 100 nF at the pin; `v_remote_warn` 3.5 V, `v_remote_cutoff` 3.2 V. Use an ADC1 pin: ADC2 (e.g. IO13) is shared with the radio on the ESP32-S3 and its reads can fail while ESP-NOW runs |
 | Mass | ~50 g cell + holder |
 
 The earlier TPS63020 buck-boost and BQ24074 charger plan (v0.4–v0.14) is dropped.
@@ -578,7 +578,7 @@ The earlier TPS63020 buck-boost and BQ24074 charger plan (v0.4–v0.14) is dropp
 
 Wiring as built: the protection board (a strip) is soldered directly onto the cell's + and − terminals; its P− goes to B− of the power-bank module, its P+ goes to B+ of the module through the power toggle switch. The switch therefore sits on the battery side, before the module, so the module draws nothing from the cell while the remote is off (a switch in the 5 V output would leave the module's boost and quiescent current running). Consequences: the remote ground is P− (switched by the protection board), and **the cell only charges with the switch ON**.
 
-Power-bank module checks (owner, 2026-11-03, on battery with USB unplugged), all **pass**: (1) no light-load auto-off at the remote's load; (2) the remote keeps running while the charger is plugged in (pass-through); (3) the 5 V comes up by itself when the switch is turned on, no button press needed. The battery sense measures 3.82–3.89 V on a charged cell (IO1, 2026-11-03).
+Power-bank module checks (owner, 2026-11-03, on battery with USB unplugged), all **pass**: (1) no light-load auto-off at the remote's load; (2) the remote keeps running while the charger is plugged in (pass-through); (3) the 5 V comes up by itself when the switch is turned on, no button press needed. ~~The battery sense measures 3.82–3.89 V on a charged cell (IO1, 2026-11-03).~~ **Corrected 2026-11-06:** that was a false pass. The divider was wired to IO13, not IO1, so IO1 was floating and happened to read ~1.9 V. Moved to IO1 on 2026-11-06: 1.98 V at the pin (meter), reported 3.90 V with the switch on; switch off reads ~0.1–0.3 V while the module's input capacitors drain, reported as no cell (§14.5).
 
 ### 11.3 Node and camera pack
 
@@ -677,7 +677,7 @@ As implemented (v0.19) all parameters are **compile-time constants** in `firmwar
 | `v_node_cutoff` | 6.6 V | — | 2S pack; above the BMS cutoff |
 | `v_remote_warn` | 3.5 V | — | Remote, 1S |
 | `v_remote_cutoff` | 3.2 V | — | Remote, 1S |
-| `v_no_supply` | 2.0 V | — | Node: below this no pack is sensed (NO_PACK flag, no cutoff) |
+| `v_no_supply` | 4.5 V | — | Node: below this no pack is sensed (NO_PACK flag, no cutoff). Above the ~3.7 V USB back-feed, below any connected 2S pack (v0.21; was 2.0 V) |
 | `v_remote_no_cell` | 2.5 V | — | Remote: below this no cell is connected (switch off / USB power) |
 | `t_batt_cutoff` | 3 s | — | Remote: time continuously below `v_remote_cutoff` before cutoff |
 | `t_batt_shutdown` | 10 s | — | Remote: deep sleep this long after cutoff |
@@ -815,7 +815,21 @@ Logs: `captures/2026-11-06-rlc-arm-fire.log`, `captures/2026-11-06-rlc-shorts-po
 | C2: tap SHOOT with the camera in standby | woke and shot, 2 frames (FULL held ~0.45 s incl. `t_shoot_timeout`) |
 | C3: RLC full sequence, camera in standby before arming | wake pulse at ARMED; **19 frames** over the 6.0 s TRIG window (≈ 3.1 fps); first frame at TRIG HIGH + ~0.1 s, so ~6 frames before ignition and ~12 after (T-21 end to end) |
 
-Open from this session: the node's VBAT sense reads a constant 9864 mV (ADC ceiling) at 7.36 V and at 11.9 V, so IO1 is at or above ~3.1 V: check the R1/R2 divider (O-22).
+Open from this session: the node's VBAT sense reads a constant 9864 mV (ADC ceiling) at 7.36 V and at 11.9 V, so IO1 is at or above ~3.1 V: check the R1/R2 divider (O-22). *Closed later the same day, see below.*
+
+**Battery sense, 2026-11-06** (both units, after rewiring; firmware prints `vraw`/`vpin` (node) and `braw`/`bpin` (remote) in STATUS for this check):
+
+| Check | Meter | Reported | Result |
+|---|---|---|---|
+| Node divider: R1/R2 were swapped (47 k on top, 100 k at the bottom, ratio 0.68, so IO1 sat above the 3.3 V rail through 47 k); swapped back | — | — | IO1 survived |
+| Node, PSU 7.32 V | IO1 2.35 V | pin 2.31–2.33 V, vbat 7.25–7.28 V | pass (−0.8 %) |
+| Node, PSU 6.24 V (unstable) | — | vbat 6.25–6.34 V, state FAULT (below `v_node_cutoff` 6.6 V) | pass; first real cutoff |
+| Node, PSU off, USB only | pack connector 3.73 V (USB back-feed through the buck) | vbat 3.75 V; with `v_no_supply` 2.0 V: FAULT, no NO_PACK | **fail**, fixed: `v_no_supply` 4.5 V, now IDLE with NO_PACK (`fault=0x30`) |
+| Remote divider: tap was on IO13, IO1 open (the 2026-11-03 pass was a floating pin); moved to IO1 | — | — | — |
+| Remote, switch on | IO1 1.98 V | pin 1.95 V, batt 3.90 V, cell detected | pass (−1.5 %) |
+| Remote, switch off | — | pin 65–110 mV and falling, batt 0.2–0.3 V, no cell | pass |
+
+Both ADCs read ~1.5 % low against the meter (ESP32-S3 calibration spread at 12 dB). No trim: the error is on the safe side (cutoffs trip slightly early).
 
 
 ## 15. Open items
@@ -833,7 +847,7 @@ Open from this session: the node's VBAT sense reads a constant 9864 mV (ADC ceil
 | O-20 | RLC side of the interface (Appendix A, v0.17): hand-off `docs/RLC_change_request_CRIG.md` to the RLC project; implement, test (T-21…T-27) |
 | O-21 | Firmware v0.19 has not been tested with a person present, and some features are not implemented yet. **Not tested:** the real SHOOT button debounce; RLC interface T-24 and the ERROR case of T-27 (T-21–T-23, T-25, T-26, the rest of T-27 and RLC T-C08 passed on the bench 2026-11-06, §14.5); the camera's own power from the node (O-12). The camera end to end (frames, standby wake, RLC burst) passed 2026-11-06 (§14.5). The SHOOT button, LEDs, RGB patterns, buzzer tones, motor and deep sleep were checked on 2026-11-06 (§14.5). **Not implemented:** camera power control (`cam_power_ctrl`, §6.3; stays off); optional keep-alive (`t_keepalive_interval`, default off); CAL / servo actuator (option A); NVS storage of parameters; final buzzer tone patterns (O-17, provisional tones in use) |
 | O-9 | Location of the 5-pin DIN socket (AD322) on the RLC base panel |
-| O-22 | Node VBAT sense (IO1) reads the ADC ceiling (9864 mV) whatever the supply (7.36 V and 11.9 V measured 2026-11-06): measure IO1 (expect ~2.35 V at 7.36 V) and check R1 100 k / R2 47 k. Until fixed, the node's pack warning and cutoff (FR-N10) cannot trip. Never feed more than 8.4 V: J2 passes the supply to the camera unregulated |
+| O-22 | **Closed 2026-11-06.** Node VBAT sense read the ADC ceiling (9864 mV) whatever the supply: R1 and R2 were swapped (47 k on top). Swapped back; reads within 1 % (§14.5). Found on the way: USB back-feeds ~3.7 V onto +VBAT through the buck, so `v_no_supply` is now 4.5 V (FR-N10). Never feed more than 8.4 V: J2 passes the supply to the camera unregulated |
 | O-10 | ~~Isolated DC-DC converter~~ — closed: no longer needed; the remote has its own battery and the interface is fully optically isolated |
 | O-11 | Measure the D3000's actual current draw (standby, meters active, during a burst) and update the §11.3 budget |
 | O-12 | EN-EL9a S contact: ≈100 kΩ NTC-like plus 9600 baud data (not 98 Ω); a fixed resistor does not remove the "battery cannot be used" error. **Parked**; the node cannot yet power the camera, the camera uses the original battery (PW-01). Reopen when camera power from the node is needed. Sniffer `firmware/ssniff` ready (bench only); alternative: a third-party EP-5 coupler that works in the D3000 without error |
@@ -898,6 +912,7 @@ T-21 to T-27 (§14.2), to be added to the RLC test specification with RLC-side I
 | 0.1 | 2026-09-27 | Initial draft |
 | 0.2 | 2026-09-27 | Added node power options, closed O-4, added O-7 |
 | 0.3 | 2026-09-27 | Two scenarios (RLC automatic / third-party manual); CRIG remote as the node's only controller; wired RLC interface with power from the base battery and single TRIG line; default channel changed to 1 (RLC on 11), O-2 closed; camera wake handled by the node only; no pad matching; integration tests; Appendix A RLC change request |
+| 0.21 | 2026-11-06 | Battery sense fixed on both units (§14.5): node R1/R2 were swapped (O-22 closed); remote divider was on IO13 instead of IO1, so the 2026-11-03 battery pass (§11.2) was a floating pin and is withdrawn; both now read within ~1.5 %. Node `v_no_supply` 2.0 → 4.5 V because USB back-feeds ~3.7 V onto +VBAT (FR-N10, §13); §11.2 notes that the battery ADC must be an ADC1 pin |
 | 0.20 | 2026-11-06 | RLC interface on the bench (U4, U6 and the DIN socket fitted, RLC fw 1.2.22): the ARM input showed about four falling edges per pulse (optocoupler turn-off), so the remote now samples ARM every 1 ms with a 3 ms debounce (FR-R10 note); with the edge interrupt the 10 Hz armed pattern would never have decoded. New HIL tests R01–R02 against the real base (§14.5); O-21 updated; arm-and-fire bench session with the real RLC (T-21, T-22, T-26, T-27 except ERROR, RLC T-C08 all pass, §14.5; then T-23 and T-25 pass); node no longer gives a wake pulse straight after a burst (FR-N19); look-and-listen check passed (§14.5): node buzzer on GPIO7 as wired (FR-N18), longer node beeps, RLC-restored beep on the remote, OLED switched off before deep sleep; camera end to end: 3 fps confirmed, 19 frames per RLC launch, wake from standby (§14.5); O-22 added (VBAT sense stuck at the ADC ceiling) |
 | 0.19 | 2026-11-03 | Firmware v0.19 written and tested (`firmware/crig`, §14.5: 30 host checks, HIL H01–H17 all pass). Spec additions from the implementation: STATUS fault bits 5 NO_PACK and 6 PREPARING (§7.3); node no-pack rule below 2.0 V (FR-N10); remote no-cell rule below 2.5 V, battery measured only with the motor off, 3 s cutoff persistence and 10 s to deep sleep (FR-R11); node LED on GPIO48 and GPIO38 (§9.3); parameters compile-time in `crig_config.h` (§13, new rows); O-21 added; T-27 accepts the RLC as-built LOW-phase pattern start (first 1 Hz pulse ~950 ms after a disarm) |
 | 0.18 | 2026-11-03 | RLC interface connector: GX12-4 replaced by a **5-pin DIN 180°** pair from Gotron (AD322 female chassis socket on base and remote, AD302 male plastic cable plug on both cable ends; ≈ €5.60), pinout 1 = TRIG+, 2 = COM− (centre), 3 = ARM+, 4/5 n.c.; weatherproofing dropped (sheltered placement, safe failure on unplug), straight-through cable rule (§8.2); radio channel rule made explicit (RR-02, RR-05, §7.5: RLC verified on channel 11, CRIG channel 1, fallback 6, ≥ 5 channels apart); RLC review answers (§8.5, App. A F-3/F-4/F-7): once FIRING is entered TRIG always ends via the post timer (incl. pulse completed on link loss and mid-pulse aborts), ARM 1 Hz in LINK_LOST too, `cam_trig_on_firing_enter()` hook, JTAG-pin boot note; T-12, T-17, T-25, H-1, H-3, H-4, O-9, §9.2, §12.2 updated |

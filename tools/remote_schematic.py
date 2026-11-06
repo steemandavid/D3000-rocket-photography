@@ -318,7 +318,7 @@ notes = [
     '2. No ARM switch, no TEST or MENU buttons, no discrete LEDs (spec v0.15). Status = on-board RGB LED (FR-R14).',
     '3. Power: BT1 → U2 (1S protection, P+/P−) → SW1 (in P+) → VBAT_SW → U3 B+ (charger + 5 V boost) → U1 5V0; +3V3 = U1 LDO,',
     '    which feeds the OLED, pull-ups and ring LEDs. ~185 mA at the cell, ~16 h on 3 350 mAh (§11.2).',
-    '4. Battery sense 1 : 2, 4.2 V → 2.1 V at IO1 (reads 3.85 V, 2026-11-03); warn 3.5 V, cutoff 3.2 V (firmware).',
+    '4. Battery sense 1 : 2, 4.2 V → 2.1 V at IO1 (first wired to IO13; moved 2026-11-06: 1.98 V → 3.90 V); warn 3.5 V, cutoff 3.2 V.',
     '5. Ring LEDs and the buzzer run straight from GPIOs; only the vibration motor has a transistor.',
     '6. SHOOT = SHOOT_BTN OR (TRIG while ARM = armed) (FR-R02, §8.6); both inactive once after boot (FR-R03).',
     '7. Same 3.3 V active buzzer as the node (O-17: tone patterns still open).',

@@ -229,6 +229,7 @@ static void adc_init(void)
     if (adc_cali_create_scheme_curve_fitting(&cal, &s_cali) != ESP_OK) s_cali = NULL;
 }
 
+static int s_braw, s_bpin;               /* last ADC raw value and pin voltage (diagnostics) */
 static void batt_update(int64_t t)
 {
     /* the motor load disturbs the reading (and gpio_get_level() of an output-only pin is always 0): skip while it runs */
@@ -237,6 +238,7 @@ static void batt_update(int64_t t)
     for (int i = 0; i < 8; i++) { adc_oneshot_read(s_adc, s_chan, &raw); sum += raw; }
     raw = sum / 8;
     if (s_cali) adc_cali_raw_to_voltage(s_cali, raw, &mv); else mv = raw * 3100 / 4095;
+    s_braw = raw; s_bpin = mv;
     int v = mv * 2;
     s_batt_mv = s_batt_mv ? (s_batt_mv * 3 + v) / 4 : v;
     if (s_sim_batt >= 0) s_batt_mv = s_sim_batt;
@@ -357,14 +359,14 @@ static void print_status(void)
 {
     printf("STATUS link=%d fresh=%d q=%d node=%s sh=%s nv=%u nf=0x%02x nrssi=%d rssi=%d burst=%lu arm=%s btn=%d trig=%d "
            "req=%d act=%d nr=%d src=%s batt=%d usb=%d ready=%d rx=%lu bad=%lu txerr=%lu foreign=%lu txfail=%lu txdel=%lu "
-           "aedges=%lu aper=%ld aage=%ld aisr=%lu simarm=%d\n",
+           "aedges=%lu aper=%ld aage=%ld aisr=%lu simarm=%d braw=%d bpin=%d\n",
            s_link, s_fresh, s_quality, crig_state_name(s_node.state), crig_shutter_name(s_node.shutter), s_node.vbat_mv,
            s_node.fault, s_node.rssi, s_rx_rssi, (unsigned long)s_node.burst_ms, armdec_name(s_arm), s_btn, s_trig,
            s_request, s_active, s_need_release, s_src == CRIG_SRC_TRIG ? "TRIG" : "BUTTON", s_batt_mv, s_usb_only, s_ready,
            (unsigned long)s_rx_ok, (unsigned long)s_rx_bad, (unsigned long)s_tx_err,
            (unsigned long)crig_link_foreign_count(), (unsigned long)crig_link_tx_fail(), (unsigned long)crig_link_tx_delivered(),
            (unsigned long)s_arm_edges, (long)(s_arm_last_per / 1000),
-           s_arm_last_edge ? (long)((esp_timer_get_time() - s_arm_last_edge) / 1000) : -1L, (unsigned long)s_arm_isr, s_sim_arm);
+           s_arm_last_edge ? (long)((esp_timer_get_time() - s_arm_last_edge) / 1000) : -1L, (unsigned long)s_arm_isr, s_sim_arm, s_braw, s_bpin);
 }
 
 static void console(void)

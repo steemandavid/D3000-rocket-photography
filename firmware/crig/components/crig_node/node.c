@@ -226,12 +226,14 @@ static void adc_init(void)
     if (adc_cali_create_scheme_curve_fitting(&cal, &s_cali) != ESP_OK) s_cali = NULL;
 }
 
+static int s_vraw, s_vpin;               /* last ADC raw value and pin voltage (diagnostics) */
 static void vbat_update(void)
 {
     int raw, sum = 0, mv = 0;
     for (int i = 0; i < 8; i++) { adc_oneshot_read(s_adc, s_chan, &raw); sum += raw; }
     raw = sum / 8;
     if (s_cali) adc_cali_raw_to_voltage(s_cali, raw, &mv); else mv = raw * 3100 / 4095;
+    s_vraw = raw; s_vpin = mv;
     int v = mv * VBAT_NUM / VBAT_DEN;
     s_vbat_mv = (uint16_t)(s_vbat_mv ? (s_vbat_mv * 3 + v) / 4 : v);
     if (s_sim_vbat >= 0) s_vbat_mv = (uint16_t)s_sim_vbat;
@@ -270,11 +272,11 @@ static void led_update(void)
 
 static void print_status(void)
 {
-    printf("STATUS state=%s shutter=%s link=%d rssi=%d vbat=%u fault=0x%02x burst=%lu prep=%d rx=%lu bad=%lu foreign=%lu tx=%lu txerr=%lu txfail=%lu txdel=%lu\n",
+    printf("STATUS state=%s shutter=%s link=%d rssi=%d vbat=%u fault=0x%02x burst=%lu prep=%d rx=%lu bad=%lu foreign=%lu tx=%lu txerr=%lu txfail=%lu txdel=%lu vraw=%d vpin=%d\n",
            crig_state_name(s_state), crig_shutter_name(s_shutter), s_link, s_rssi, s_vbat_mv, s_fault,
            (unsigned long)s_burst_ms, s_prep_req, (unsigned long)s_rx_ok, (unsigned long)s_rx_bad,
            (unsigned long)crig_link_foreign_count(), (unsigned long)s_tx_ok, (unsigned long)s_tx_err,
-           (unsigned long)crig_link_tx_fail(), (unsigned long)crig_link_tx_delivered());
+           (unsigned long)crig_link_tx_fail(), (unsigned long)crig_link_tx_delivered(), s_vraw, s_vpin);
 }
 
 static void console(void)

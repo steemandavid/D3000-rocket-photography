@@ -2,7 +2,7 @@
 
 ESP-IDF **v5.4.1**, ESP32-S3 (DevKitC-1 / -1U, N16R8). One project with two images, selected by Kconfig
 (`CONFIG_CRIG_UNIT_NODE` / `CONFIG_CRIG_UNIT_REMOTE`). Implements spec `camera-rig-functional-spec.md`
-v0.19, which records the firmware's choices in §5, §7.3, §11.2, §13 and §14.5.
+v0.21, which records the firmware's choices in §5, §7.3, §11.2, §13 and §14.5.
 
 ```
 components/crig_common   protocol + CRC (crig_proto), ARM decoder (crig_armdec), ESP-NOW link (crig_link),
@@ -52,8 +52,8 @@ and the remote resets them all on reboot.
 
 | Unit | Commands |
 |---|---|
-| node | `status`, `test` (one HALF → FULL → REST cycle, FR-N07), `beep <ms>`, `reboot`, `scan`, `bcast`, `sim vbat` |
-| remote | `status` (incl. ARM line stats `aedges`/`aper`/`aage`/`aisr`), `screen` (current OLED text), `scan`, `bcast`, `beep <ms>`, `reboot`, `sim …` |
+| node | `status` (incl. pack ADC `vraw`/`vpin`), `test` (one HALF → FULL → REST cycle, FR-N07), `beep <ms>`, `reboot`, `scan`, `bcast`, `sim vbat` |
+| remote | `status` (incl. ARM line stats `aedges`/`aper`/`aage`/`aisr`, battery ADC `braw`/`bpin`), `screen` (current OLED text), `scan`, `bcast`, `beep <ms>`, `reboot`, `sim …` |
 
 Both log state changes as `EVT <ms> <what>`.
 

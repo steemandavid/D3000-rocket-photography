@@ -14,7 +14,7 @@ David soldered up the CRIG remote; validate the hardware with a test firmware an
 
 | GPIO | Function | Wire |
 |---|---|---|
-| IO1 | Battery sense | geel/blauw |
+| IO1 | Battery sense | geel/blauw (actually soldered to IO13 until 2026-11-06) |
 | IO4 | SHOOT button | groen/zwart |
 | IO5 | TRIG (PC817) | grijs/wit (David first said IO3, corrected) |
 | IO8 / IO9 | OLED SDA / SCL | blauw/wit / wit/blauw |
@@ -37,7 +37,7 @@ IO6 (RLC_DET) and J1 (GX12-4) not wired yet.
 | Part | Result |
 |---|---|
 | MCU, flash, PSRAM | Pass |
-| Battery sense IO1 | Pass, 3.78–3.89 V |
+| Battery sense IO1 | ~~Pass, 3.78–3.89 V~~ **False pass** (found 2026-11-06): the divider was on IO13, IO1 was floating and read ~1.9 V by chance |
 | Buzzer, motor, RGB LED, SHOOT button | Pass |
 | Green / red LEDs | Fail first (both fitted reversed) → resoldered → pass |
 | OLED | Fail first: lines pulled high but no ACK in either pin order (bit-bang and hardware) → David repaired a lifted trace on the module → 0x3C answers, display correct |
@@ -403,3 +403,13 @@ David measured the S contact to − on the original EN-EL9a (out of the camera):
 - Frames read straight from the card over USB (gvfs gphoto2 mount; remount to refresh the listing). C1 button 2.5 s → **8 frames, 3.0 fps**; C2 tap from standby → woke, 2 frames; C3 RLC full sequence from standby → **19 frames** over the 6.0 s TRIG window, ~6 before ignition. The camera's remaining-shots counter is an estimate (dropped 5 for 8 frames).
 - **Found:** node VBAT sense constant at 9864 mV (ADC ceiling) at both 11.9 V and 7.36 V → IO1 ≥ ~3.1 V; divider to be checked (new O-22). Pack warning/cutoff can't trip until fixed.
 - Log `captures/2026-11-06-camera-e2e.log` (git-ignored).
+
+### 2026-11-06 (cont.) — battery sense fixed on both units (spec v0.21)
+
+- **Remote:** IO1 read a noisy 0.2–0.6 V with the switch on or off. Owner found the divider tap soldered to **IO13**, with nothing on IO1, so the 2026-11-03 "pass" (3.78–3.89 V) was a floating pin that happened to sit near 1.9 V. It was never cross-checked against a meter or with the switch off. Not moved to the firmware side: IO13 is ADC2, which the S3 shares with the radio. Tap moved to IO1: meter 1.98 V, reported 3.90 V, cell detected; switch off → no cell.
+- **Node (O-22 closed):** R1/R2 swapped (47 k yellow-violet-orange on top, 100 k brown-black-yellow at the bottom, ratio 0.68 instead of 0.32); IO1 was held above the rail through 47 k and survived. Swapped back: PSU 7.32 V → IO1 2.35 V (meter) / 2.31–2.33 V (ADC), vbat 7.25–7.28 V; PSU 6.24 V → 6.25–6.34 V and FAULT (below the 6.6 V cutoff, first real cutoff).
+- **USB back-feed:** PSU off, USB only → 3.73 V across the pack connector (meter), 3.75 V reported: USB 5 V goes back through the buck to +VBAT. With `V_NO_SUPPLY_MV` 2000 the node went to FAULT instead of NO_PACK. Raised to **4500** (`crig_config.h`, node-only); reflashed, now IDLE with `fault=0x30` (NO_PACK, CAM_ON). Host 30/30.
+- ADC accuracy: both units read ~1.5 % low against the meter; no trim (errs on the safe side).
+- STATUS now also prints the raw ADC and pin voltage (`vraw`/`vpin` on the node, `braw`/`bpin` on the remote).
+- Boards on their native USB ports came up silent after the rewiring (download mode); `esptool --after watchdog_reset chip_id` started them.
+- Docs: spec v0.21 (FR-N10, §11.2 corrected, §13 `v_no_supply`, §14.5 battery-sense table, O-22 closed); remote schematic note 4 (SVG + PNG regenerated); this changelog's 2026-11-03 entry corrected; handoff D39.
