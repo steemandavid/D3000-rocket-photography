@@ -413,3 +413,4 @@ David measured the S contact to − on the original EN-EL9a (out of the camera):
 - STATUS now also prints the raw ADC and pin voltage (`vraw`/`vpin` on the node, `braw`/`bpin` on the remote).
 - Boards on their native USB ports came up silent after the rewiring (download mode); `esptool --after watchdog_reset chip_id` started them.
 - Docs: spec v0.21 (FR-N10, §11.2 corrected, §13 `v_no_supply`, §14.5 battery-sense table, O-22 closed); remote schematic note 4 (SVG + PNG regenerated); this changelog's 2026-11-03 entry corrected; handoff D39.
+- Wrap-up: O-21 and the firmware README no longer list the real SHOOT button debounce as untested; the look-and-listen check covered it. Committed `c2bf0be`. Next suggested: remote runtime test on its cell (node logs link uptime), then range test T-30.
