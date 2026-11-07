@@ -51,6 +51,7 @@ static uint16_t s_vbat_mv, s_tx_seq;
 static int8_t   s_rssi;
 static uint32_t s_burst_ms;
 static bool     s_has_rx, s_link, s_prep_req, s_prep_prev, s_prep_active;
+static int s_rbatt, s_rbatt_logged = -1000;   /* remote battery mV from HEARTBEAT (0 = no cell) */
 static int64_t  s_t_rx, s_t_shoot, s_t_half, s_t_full, s_t_test, s_prep_end, s_prep_next;
 
 static crig_ws_t s_led_a, s_led_b;
@@ -145,6 +146,10 @@ static void handle(const rx_item_t *it)
     switch (it->pkt.type) {
     case CRIG_T_HEARTBEAT:
         s_prep_req = it->pkt.payload[0] != 0;
+        s_rbatt = it->pkt.payload[1] | it->pkt.payload[2] << 8;
+        if (abs(s_rbatt - s_rbatt_logged) >= 20 || (s_rbatt == 0) != (s_rbatt_logged == 0)) {
+            evt("rbatt %d", s_rbatt); s_rbatt_logged = s_rbatt;
+        }
         if (s_state == NODE_LOCKOUT) { set_state(NODE_IDLE); evt("lockout cleared"); }
         break;
     case CRIG_T_SHOOT:
@@ -272,11 +277,11 @@ static void led_update(void)
 
 static void print_status(void)
 {
-    printf("STATUS state=%s shutter=%s link=%d rssi=%d vbat=%u fault=0x%02x burst=%lu prep=%d rx=%lu bad=%lu foreign=%lu tx=%lu txerr=%lu txfail=%lu txdel=%lu vraw=%d vpin=%d\n",
+    printf("STATUS state=%s shutter=%s link=%d rssi=%d vbat=%u fault=0x%02x burst=%lu prep=%d rx=%lu bad=%lu foreign=%lu tx=%lu txerr=%lu txfail=%lu txdel=%lu vraw=%d vpin=%d rbatt=%d\n",
            crig_state_name(s_state), crig_shutter_name(s_shutter), s_link, s_rssi, s_vbat_mv, s_fault,
            (unsigned long)s_burst_ms, s_prep_req, (unsigned long)s_rx_ok, (unsigned long)s_rx_bad,
            (unsigned long)crig_link_foreign_count(), (unsigned long)s_tx_ok, (unsigned long)s_tx_err,
-           (unsigned long)crig_link_tx_fail(), (unsigned long)crig_link_tx_delivered(), s_vraw, s_vpin);
+           (unsigned long)crig_link_tx_fail(), (unsigned long)crig_link_tx_delivered(), s_vraw, s_vpin, s_rbatt);
 }
 
 static void console(void)

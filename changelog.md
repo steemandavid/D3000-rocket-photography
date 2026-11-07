@@ -414,3 +414,12 @@ David measured the S contact to − on the original EN-EL9a (out of the camera):
 - Boards on their native USB ports came up silent after the rewiring (download mode); `esptool --after watchdog_reset chip_id` started them.
 - Docs: spec v0.21 (FR-N10, §11.2 corrected, §13 `v_no_supply`, §14.5 battery-sense table, O-22 closed); remote schematic note 4 (SVG + PNG regenerated); this changelog's 2026-11-03 entry corrected; handoff D39.
 - Wrap-up: O-21 and the firmware README no longer list the real SHOOT button debounce as untested; the look-and-listen check covered it. Committed `c2bf0be`. Next suggested: remote runtime test on its cell (node logs link uptime), then range test T-30.
+
+## 2026-11-07 — Remote battery over the link (spec v0.22), runtime test prepared
+
+- The remote runtime test needs the remote on its cell without USB (the dev board's USB would power it), so its battery now reaches the node: **protocol version 2**, HEARTBEAT payload `prepare` + `remote_batt_mv` (uint16 LE, 0 = no cell / USB power). The node shows it as `rbatt=` in `status` and logs `EVT … rbatt <mV>` on a change of ≥ 20 mV or between cell and no cell (FR-N20).
+- Version bumped 1 → 2 so a mismatched pair rejects each other's packets (both units flashed together).
+- Checked with `sim batt` on the remote: 3900 / 3860 / 3500 arrive at the node within one heartbeat; the 10 mV step is not logged, as intended.
+- Tests: host 32 checks (new: HEARTBEAT v2 round-trip, old 1-byte HEARTBEAT rejected); HIL 15/15 (H03 and H12 need the node on its UART bridge, not run).
+- New `firmware/crig/tools/runtime_log.py`: logs the node's native console with host timestamps and asks for `status` every 30 s; reopens the port if it drops; meant to run detached (`setsid nohup …`).
+- Docs: spec v0.22 (§7.2 version, §7.3 HEARTBEAT, FR-N20, history), firmware README.

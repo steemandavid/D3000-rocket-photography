@@ -14,7 +14,7 @@ uint16_t crig_crc16(const uint8_t *d, size_t n)
 int crig_payload_len(uint8_t type)
 {
     switch (type) {
-    case CRIG_T_HEARTBEAT: return 1;            /* prepare */
+    case CRIG_T_HEARTBEAT: return 3;            /* prepare, remote batt mV (uint16 LE, 0 = no cell) */
     case CRIG_T_SHOOT:     return 2;            /* source, prepare */
     case CRIG_T_STATUS:    return CRIG_STATUS_LEN;
     default:               return -1;

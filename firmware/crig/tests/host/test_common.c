@@ -23,9 +23,14 @@ static void t_proto(void)
     CHECK(q.type == CRIG_T_SHOOT && q.seq == 0x1234 && q.ack_seq == 0xBEEF && q.payload[0] == 2 && q.payload[1] == 1, "fields round-trip");
     f[11] ^= 1; CHECK(!crig_decode(f, n, &q), "bad payload/crc rejected"); f[11] ^= 1;
     f[0] ^= 1; CHECK(!crig_decode(f, n, &q), "bad magic rejected"); f[0] ^= 1;
-    f[4] = 2;  CHECK(!crig_decode(f, n, &q), "bad version rejected"); f[4] = 1;
+    f[4] = CRIG_VERSION + 1;  CHECK(!crig_decode(f, n, &q), "bad version rejected"); f[4] = CRIG_VERSION;
     CHECK(!crig_decode(f, n - 1, &q), "short frame rejected");
     f[5] = 0x03; CHECK(!crig_decode(f, n, &q), "unknown/removed type 0x03 rejected"); f[5] = CRIG_T_SHOOT;
+    crig_pkt_t hb = { .type = CRIG_T_HEARTBEAT, .seq = 7, .len = 3, .payload = { 1, 3896 & 0xFF, 3896 >> 8 } };
+    n = crig_encode(&hb, f);
+    CHECK(n == 15 && crig_decode(f, n, &q) && q.len == 3 && q.payload[0] == 1 && (q.payload[1] | q.payload[2] << 8) == 3896,
+          "HEARTBEAT v2: prepare + remote batt round-trip");
+    hb.len = 1; n = crig_encode(&hb, f); CHECK(!crig_decode(f, n, &q), "old 1-byte HEARTBEAT rejected");
     crig_status_t s = { NODE_LOCKOUT, SH_FULL, 0x21, 7412, -57, 15000 }, t;
     crig_pkt_t st = { .type = CRIG_T_STATUS, .seq = 1, .ack_seq = 2, .len = CRIG_STATUS_LEN };
     crig_status_pack(&s, st.payload);

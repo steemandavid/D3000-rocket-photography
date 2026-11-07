@@ -493,7 +493,8 @@ void crig_remote_main(void)
         uint8_t prep = s_arm == ARM_ARMED;
         if (s_active ? t - s_t_tx >= MS(T_SHOOT_PERIOD_MS) : t - s_t_tx >= MS(T_HEARTBEAT_MS)) {
             if (s_active) { uint8_t pl[2] = { s_src, prep }; tx(CRIG_T_SHOOT, pl, 2, false); }
-            else { uint8_t pl[1] = { prep }; tx(CRIG_T_HEARTBEAT, pl, 1, false); }
+            else { uint16_t mv = s_usb_only ? 0 : (uint16_t)s_batt_mv;
+                   uint8_t pl[3] = { prep, (uint8_t)mv, (uint8_t)(mv >> 8) }; tx(CRIG_T_HEARTBEAT, pl, 3, false); }
         }
         if (s_badcrc_seq >= 0 && t - s_badcrc_t > MS(400)) {
             evt("badcrc acked=%d", s_badcrc_acked);

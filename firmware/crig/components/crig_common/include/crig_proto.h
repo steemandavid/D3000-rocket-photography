@@ -5,7 +5,7 @@
 #include <stddef.h>
 
 #define CRIG_MAGIC        0x47495243u   /* "CRIG" */
-#define CRIG_VERSION      1
+#define CRIG_VERSION      2   /* 2: HEARTBEAT carries the remote battery (v0.22) */
 #define CRIG_HDR_LEN      10
 #define CRIG_MAX_PAYLOAD  18
 #define CRIG_MAX_FRAME    (CRIG_HDR_LEN + CRIG_MAX_PAYLOAD + 2)

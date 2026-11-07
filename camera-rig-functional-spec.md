@@ -3,7 +3,7 @@
 | | |
 |---|---|
 | **Document** | Camera Rig (CRIG) — Functional Specification |
-| **Version** | 0.21 (draft) |
+| **Version** | 0.22 (draft) |
 | **Date** | 2026-11-03 |
 | **Author** | David Steeman |
 | **Status** | Draft — wired release (option B) selected; camera power validation open (O-12); remote simplified (no arming, SHOOT only) |
@@ -159,6 +159,7 @@ Out of scope:
 | FR-N17 | The node shall report the camera power state in STATUS. |
 | FR-N19 | When `prepare` changes from 0 to 1, the node shall prepare the camera: if `cam_power_ctrl` is on and the camera is off, switch it on (FR-N14, FR-N15); then, once the camera is ready, give one HALF pulse of `t_prepare_wake`. While `prepare` stays 1 and the node is IDLE, it shall repeat a HALF pulse every `t_prepare_keepalive`. `prepare` does not gate SHOOT. When `prepare` returns to 0 or the link is lost, the node stops preparing; camera power then follows §6.3. |
 | FR-N18 | The node has a buzzer (GPIO7, + to GPIO7, − to GND; as wired, found 2026-11-06 — the draft schematic said GPIO15) for local state and fault indication. Tone patterns are to be defined (O-17) and shall differ from RLC and other launch system tones. The buzzer shall never sound while the shutter is not in REST. |
+| FR-N20 | The node shall report the remote's battery voltage from HEARTBEAT (`remote_batt_mv`) as `rbatt` in its console STATUS and log an event when it changes by ≥ 20 mV or between cell and no cell (v0.22). Used for the remote runtime test, where the remote runs on its cell without USB (§14.5). |
 
 ### 5.2 Remote
 
@@ -314,7 +315,7 @@ All multi-byte fields little-endian. Total size ≤ 32 bytes.
 | Offset | Field | Type | Description |
 |---|---|---|---|
 | 0 | `magic` | uint32 | `0x47495243` ("CRIG") |
-| 4 | `version` | uint8 | Protocol version, currently `1` |
+| 4 | `version` | uint8 | Protocol version, currently `2` (v0.22: HEARTBEAT carries the remote battery; `1` until v0.21) |
 | 5 | `type` | uint8 | Message type (§7.3) |
 | 6 | `seq` | uint16 | Sender sequence number, wraps |
 | 8 | `ack_seq` | uint16 | Last sequence number received from the peer |
@@ -325,7 +326,7 @@ All multi-byte fields little-endian. Total size ≤ 32 bytes.
 
 | Code | Name | Direction | Payload | Rate |
 |---|---|---|---|---|
-| `0x01` | HEARTBEAT | R → N | `prepare` (uint8: 0/1) | `f_heartbeat` (5 Hz) |
+| `0x01` | HEARTBEAT | R → N | `prepare` (uint8: 0/1), `remote_batt_mv` (uint16: remote cell voltage, 0 = no cell / USB power; v0.22) | `f_heartbeat` (5 Hz) |
 | `0x02` | SHOOT | R → N | `source` (uint8: 1 = button, 2 = TRIG), `prepare` (uint8: 0/1) | `f_shoot` (20 Hz) while active |
 | `0x81` | STATUS | N → R | See below | Reply to every valid packet |
 
@@ -912,6 +913,7 @@ T-21 to T-27 (§14.2), to be added to the RLC test specification with RLC-side I
 | 0.1 | 2026-09-27 | Initial draft |
 | 0.2 | 2026-09-27 | Added node power options, closed O-4, added O-7 |
 | 0.3 | 2026-09-27 | Two scenarios (RLC automatic / third-party manual); CRIG remote as the node's only controller; wired RLC interface with power from the base battery and single TRIG line; default channel changed to 1 (RLC on 11), O-2 closed; camera wake handled by the node only; no pad matching; integration tests; Appendix A RLC change request |
+| 0.22 | 2026-11-07 | Protocol version 2: HEARTBEAT carries the remote battery voltage (§7.2, §7.3); the node reports and logs it (FR-N20), so the remote's runtime can be logged on the node's USB console while the remote runs on its cell. Host tests 32 checks; HIL 15/15 (H03, H12 not run: node on its native port) |
 | 0.21 | 2026-11-06 | Battery sense fixed on both units (§14.5): node R1/R2 were swapped (O-22 closed); remote divider was on IO13 instead of IO1, so the 2026-11-03 battery pass (§11.2) was a floating pin and is withdrawn; both now read within ~1.5 %. Node `v_no_supply` 2.0 → 4.5 V because USB back-feeds ~3.7 V onto +VBAT (FR-N10, §13); §11.2 notes that the battery ADC must be an ADC1 pin |
 | 0.20 | 2026-11-06 | RLC interface on the bench (U4, U6 and the DIN socket fitted, RLC fw 1.2.22): the ARM input showed about four falling edges per pulse (optocoupler turn-off), so the remote now samples ARM every 1 ms with a 3 ms debounce (FR-R10 note); with the edge interrupt the 10 Hz armed pattern would never have decoded. New HIL tests R01–R02 against the real base (§14.5); O-21 updated; arm-and-fire bench session with the real RLC (T-21, T-22, T-26, T-27 except ERROR, RLC T-C08 all pass, §14.5; then T-23 and T-25 pass); node no longer gives a wake pulse straight after a burst (FR-N19); look-and-listen check passed (§14.5): node buzzer on GPIO7 as wired (FR-N18), longer node beeps, RLC-restored beep on the remote, OLED switched off before deep sleep; camera end to end: 3 fps confirmed, 19 frames per RLC launch, wake from standby (§14.5); O-22 added (VBAT sense stuck at the ADC ceiling) |
 | 0.19 | 2026-11-03 | Firmware v0.19 written and tested (`firmware/crig`, §14.5: 30 host checks, HIL H01–H17 all pass). Spec additions from the implementation: STATUS fault bits 5 NO_PACK and 6 PREPARING (§7.3); node no-pack rule below 2.0 V (FR-N10); remote no-cell rule below 2.5 V, battery measured only with the motor off, 3 s cutoff persistence and 10 s to deep sleep (FR-R11); node LED on GPIO48 and GPIO38 (§9.3); parameters compile-time in `crig_config.h` (§13, new rows); O-21 added; T-27 accepts the RLC as-built LOW-phase pattern start (first 1 Hz pulse ~950 ms after a disarm) |
