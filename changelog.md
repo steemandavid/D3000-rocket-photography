@@ -466,3 +466,14 @@ Goal: power the D3000 from the node without faking the Nikon battery check on th
 - **Do not connect J2 while the EN-EL9a is in** until the charger chain is built: on the bench node J2 pin 1 is still raw +VBAT.
 - Charging only 0–45 °C (PW-10): the passive chain has no temperature cut-off.
 - Next: order the parts, run T-47 (chain alone: setpoint over 6.0–8.4 V input, quiescent and reverse current, ≤ 1 A into 6.6 V), then T-46/T-48 with the camera.
+
+## 2026-11-07 (cont.) — Camera on/off through U5 tested (T-40, T-41; spec v0.24)
+
+- Node firmware: new console test hook **`cam off` / `cam on`** (`node.c`, under `CONFIG_CRIG_TEST_HOOKS`): drives IO6 → U5 PC817 → GRN shorted to BLU. `cam off` is refused unless the shutter is in REST. `cam_power_ctrl` itself is still not implemented. Built, flashed to the node (MAC-checked `flash.sh`), host tests 32/32.
+- Setup: D3000 on its EN-EL9a, knob ON, J3 plugged in; J2 plugged in with a lab supply topping up the battery (CC ~0.7 A at ~7.5–7.6 V, so the camera's own draw was not visible).
+- **T-40 passed:** `cam off` switches the camera off cleanly (no error, no card message); `cam on` brings it back with the knob still in ON. 9 cycles.
+- **T-41 passed:** a `test` cycle (HALF, FULL +0.1 s) at 3.0 s, then 1.0 / 0.5 / 0.2 s after `cam on` with the camera on USB (DSC_4817–4820), and 1.0 / 0.5 / 0.2 / ≈ 0 s without USB (DSC_4821–4824): every cycle took a frame. Frames matched to commands by EXIF spacing (10.5–11.0 s vs 10.47–10.87 s). The green line only signals the processor; the camera is ready immediately.
+- `t_cam_boot` 3 s → **0.5 s** (margin for cold / weak battery).
+- Gotcha: opening the node's UART-bridge port resets the node, which releases U5; run a whole sequence in one console session (scratch helper `camseq.py`, sends timed commands and prints `EVT` lines).
+- Docs: spec v0.24 (§13 `t_cam_boot`, §14.4 results table, T-40/T-41, O-14, history); firmware README (node console); handoff D41.
+- Next: camera current when switched off (supply in CV), T-42 card write-out after a 20-frame burst, T-43…T-45; then implement `cam_power_ctrl` and redo the pack sizing (§11.3) with the measured off-current.

@@ -2,7 +2,7 @@
  * CRIG camera node (spec v0.18 §5.1, §6.2, §9.1, §9.3). ESP32-S3-DevKitC-1 N16R8.
  *
  *   IO1  VBAT sense (100k / 47k)      IO4  FULL  -> U3 PC817 (camera WHT)
- *   IO5  HALF  -> U4 PC817 (YEL)      IO6  PWR   -> U5 PC817 (GRN), never driven (cam_power_ctrl off)
+ *   IO5  HALF  -> U4 PC817 (YEL)      IO6  PWR   -> U5 PC817 (GRN), only driven by the console test hook `cam off|on` (cam_power_ctrl off)
  *   IO7 buzzer (active)               IO48 + IO38 on-board WS2812 (both driven: board revision not recorded)
  *
  * Console (UART0, 115200): help | status | test.  Events are logged as "EVT <ms> <what> ..." for the HIL tests.
@@ -299,6 +299,11 @@ static void console(void)
         s_sim_vbat = !strcmp(l + 9, "real") ? -1 : atoi(l + 9);
         printf("OK sim vbat %d\n", s_sim_vbat);
     }
+    else if (!strcmp(l, "cam off")) {        /* bench test of U5 / GRN (T-40), independent of cam_power_ctrl */
+        if (s_shutter != SH_REST) printf("ERR cam off refused: shutter not in REST\n");
+        else { gpio_set_level(PIN_PWR, 1); evt("cam off (U5 on, GRN shorted to BLU)"); }
+    }
+    else if (!strcmp(l, "cam on")) { gpio_set_level(PIN_PWR, 0); evt("cam on (U5 released, knob decides)"); }
 #endif
     else if (!strncmp(l, "beep ", 5)) {      /* buzzer check: one tone of <ms> (silent while shooting) */
         uint16_t ms[] = { (uint16_t)atoi(l + 5) };
@@ -307,7 +312,7 @@ static void console(void)
     else if (!strcmp(l, "reboot")) { printf("OK reboot\n"); fflush(stdout); vTaskDelay(pdMS_TO_TICKS(50)); esp_restart(); }
     else if (!strcmp(l, "scan")) crig_link_scan();
     else if (!strcmp(l, "bcast")) crig_link_bcast_test(20);
-    else if (!strcmp(l, "help")) printf("commands: status | test | scan | bcast | beep <ms> | reboot | sim vbat <mv>|real\n");
+    else if (!strcmp(l, "help")) printf("commands: status | test | scan | bcast | beep <ms> | reboot | sim vbat <mv>|real | cam off|on\n");
     else printf("ERR unknown '%s'\n", l);
 }
 

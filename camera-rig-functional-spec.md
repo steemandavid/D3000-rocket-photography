@@ -3,7 +3,7 @@
 | | |
 |---|---|
 | **Document** | Camera Rig (CRIG) — Functional Specification |
-| **Version** | 0.23 (draft) |
+| **Version** | 0.24 (draft) |
 | **Date** | 2026-11-07 |
 | **Author** | David Steeman |
 | **Status** | Draft — wired release (option B) selected; camera power: EN-EL9a stays in and is float-charged by the node at ≤ 8.0 V, validated on a lab supply, converter chain to build (O-12); remote simplified (no arming, SHOOT only) |
@@ -717,7 +717,7 @@ As implemented (v0.19) all parameters are **compile-time constants** in `firmwar
 | `servo_us_rest/half/full` | 1500 / — / — | 500–2500 µs | From calibration |
 | `servo_detach_at_rest` | on | on/off | |
 | `cam_power_ctrl` | off | on/off | Remote camera on/off via green line (§6.3) |
-| `t_cam_boot` | 3 s | 1–10 s | Camera on → ready; to be measured (T-41) |
+| `t_cam_boot` | 0.5 s | 0.2–10 s | Camera on → ready. Measured 2026-11-07: ≈ 0 s (a picture with HALF at 0 s after releasing GRN, with and without USB, T-41); 0.5 s is margin for cold or a weak battery |
 | `t_cam_off_delay` | 30 s | 5–300 s | Minimum on-time after the last FULL (card write-out; T-42) |
 
 RLC-side parameters (`cam_lead_ms`, `cam_post_ms`, `cam_max_ms` and the ARM pattern timings) are compile-time constants in the RLC firmware (Appendix A).
@@ -780,12 +780,24 @@ RLC-side parameters (`cam_lead_ms`, `cam_post_ms`, `cam_max_ms` and the ARM patt
 
 | ID | Test | Pass criterion |
 |---|---|---|
-| T-40 | Short green to blue (wire, then optocoupler) with the camera on, knob in ON | Camera switches off cleanly (no error, no card message); releasing it switches the camera on again |
-| T-41 | Measure time from releasing green to HALF being accepted | Value recorded; `t_cam_boot` set ≥ 1.3 × measured |
+| T-40 | Short green to blue (wire, then optocoupler) with the camera on, knob in ON | Camera switches off cleanly (no error, no card message); releasing it switches the camera on again. **Passed 2026-11-07** through U5 (console `cam off` / `cam on`), 9 cycles, no errors |
+| T-41 | Measure time from releasing green to HALF being accepted | Value recorded; `t_cam_boot` set ≥ 1.3 × measured. **Passed 2026-11-07:** a `test` cycle 1.0, 0.5, 0.2 and ≈ 0 s after `cam on` took a frame every time, with the camera on USB and without (8/8 frames, matched by EXIF times); `t_cam_boot` = 0.5 s |
 | T-42 | 20-frame JPEG Fine burst, then measure how long the card-access LED stays on | `t_cam_off_delay` ≥ 2 × measured; no card errors after 50 off/on cycles after bursts |
 | T-43 | ESP32 reset, crash and brownout with the camera off | Optocoupler released; camera switches on and stays on |
 | T-44 | Menu settings and clock after 20 off/on cycles | Unchanged |
 | T-45 | Power budget: 12 h with the camera off between 40 bursts | Pack energy lower than in T-31; recorded |
+
+**Camera power control on the bench, 2026-11-07** (D3000 on its EN-EL9a, knob ON, J3 plugged in, J2 plugged in with a lab supply topping up the battery in CC at ~0.7 A; node fw with the console test hook `cam off|on`, `cam_power_ctrl` still off):
+
+| Step | Result |
+|---|---|
+| `cam off` (U5 on, GRN shorted to BLU) | Camera switches off cleanly: display off, no error, no card message |
+| `cam on` (U5 released) after 5–12 s | Camera switches back on by itself, knob still in ON |
+| `test` 3.0 s after `cam on` (camera on USB) | Frame DSC_4817 |
+| `test` 1.0 / 0.5 / 0.2 s after `cam on` (camera on USB) | Frames DSC_4818–4820, 10.5 s apart = command spacing |
+| `test` 1.0 / 0.5 / 0.2 / ≈ 0 s after `cam on` (USB unplugged) | Frames DSC_4821–4824, all four cycles |
+
+Conclusion: the green line does not cut the camera's power, it only signals the processor, which accepts HALF immediately on release. Not measured yet: the camera's current while switched off this way (needs the supply in CV, e.g. on a full battery), card write-out time (T-42), T-43…T-45. Note: opening the node's UART-bridge port resets the node (U5 released), so a test sequence must run in one console session.
 
 ### 14.5 Automated tests (firmware v0.19)
 
@@ -890,7 +902,7 @@ Both ADCs read ~1.5 % low against the meter (ESP32-S3 calibration spread at 12 d
 | O-18 | ~~SHOOT button~~ — closed 2026-11-03: plain push button + two separate 3 mm LEDs (green IO10, red IO11), direct GPIO drive. Original text: choose an illuminated type with a bi-colour (or two-colour) ring whose LEDs light at ≤ 3.3 V per colour and a few mA, since they are driven directly from GPIOs (no drivers). Series resistor values follow from the chosen ring. The three discrete LEDs are dropped (v0.15) |
 | O-17 | Buzzer tone patterns for node and remote (events, distinct from RLC tones, silent during bursts). Buzzer part settled: the remote uses the same 3.3 V active buzzer as the node (internal oscillator, ~2 mA, direct GPIO drive) |
 | O-19 | ~~Remote dev board revision~~ — closed 2026-11-03: RGB LED fixed on GPIO48 like the RLC, verified working; GPIO38 not used |
-| O-14 | Remote camera on/off through the green line: specified in §6.3 (default off); open until T-40…T-45 pass and the feature is enabled |
+| O-14 | Remote camera on/off through the green line: specified in §6.3 (default off). T-40 and T-41 passed 2026-11-07 (§14.4; `t_cam_boot` 0.5 s). Open: switched-off current, T-42…T-45, firmware implementation of `cam_power_ctrl` |
 
 ---
 
@@ -946,6 +958,7 @@ T-21 to T-27 (§14.2), to be added to the RLC test specification with RLC-side I
 | 0.1 | 2026-09-27 | Initial draft |
 | 0.2 | 2026-09-27 | Added node power options, closed O-4, added O-7 |
 | 0.3 | 2026-09-27 | Two scenarios (RLC automatic / third-party manual); CRIG remote as the node's only controller; wired RLC interface with power from the base battery and single TRIG line; default channel changed to 1 (RLC on 11), O-2 closed; camera wake handled by the node only; no pad matching; integration tests; Appendix A RLC change request |
+| 0.24 | 2026-11-07 | Camera power control on the bench (§14.4): T-40 passed (U5 switches the camera off and on cleanly), T-41 passed (a frame even with HALF ≈ 0 s after release, with and without USB); `t_cam_boot` 3 s → 0.5 s (§13); O-14 updated. Node console test hook `cam off|on` |
 | 0.23 | 2026-11-07 | Camera power: the EN-EL9a stays in the camera and is float-charged by the node at ≤ 8.0 V through + and − (§11.3 rewritten, §1, §6.2 J2 pin 1, §10, §12.1). Bench check on a lab supply at 8.21 V: no battery error, camera shoots, camera idle ≈ 100 mA. Float charger: Joy-IT BUCKBOOST02 at 8.00 V + 1N5822 + 1 Ω 3 W (passive current limit ≈ 0.95 A max); PW-05 updated, PW-06…PW-11 added; power budget with charger losses and the EN-EL9a buffer; T-14 revised, T-46…T-49 added; O-7, O-12, O-22 updated; node schematic v0.4 (float charger U6/D1/R10, J2 pin 2 n.c.) |
 | 0.22 | 2026-11-07 | Protocol version 2: HEARTBEAT carries the remote battery voltage (§7.2, §7.3); the node reports and logs it (FR-N20), so the remote's runtime can be logged on the node's USB console while the remote runs on its cell. Host tests 32 checks; HIL 15/15 (H03, H12 not run: node on its native port) |
 | 0.21 | 2026-11-06 | Battery sense fixed on both units (§14.5): node R1/R2 were swapped (O-22 closed); remote divider was on IO13 instead of IO1, so the 2026-11-03 battery pass (§11.2) was a floating pin and is withdrawn; both now read within ~1.5 %. Node `v_no_supply` 2.0 → 4.5 V because USB back-feeds ~3.7 V onto +VBAT (FR-N10, §13); §11.2 notes that the battery ADC must be an ADC1 pin |

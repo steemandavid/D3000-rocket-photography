@@ -43,7 +43,7 @@ python3 tests/hil/hil.py rlc      # R01–R02: real RLC base on the DIN cable (R
 
 The remote's console **test hooks** (`CONFIG_CRIG_TEST_HOOKS`, on by default) stand in for hardware that a script
 can't operate: `sim shoot|trig 0|1|real`, `sim arm none|1|10|real` (synthetic ARM edges), `sim batt <mv>|real`,
-`sim badcrc` (one corrupt SHOOT). The node has `sim vbat <mv>|real`. Every hook falls back to the real input with `real`,
+`sim badcrc` (one corrupt SHOOT). The node has `sim vbat <mv>|real`, and `cam off|on` drives U5 (camera power via the green line) directly for bench tests T-40/T-41 (`cam off` is refused unless the shutter is in REST; a reboot releases U5). Every hook falls back to the real input with `real`,
 and the remote resets them all on reboot.
 
 **The HIL burst tests take real pictures if the camera is connected to the node.**
@@ -52,7 +52,7 @@ and the remote resets them all on reboot.
 
 | Unit | Commands |
 |---|---|
-| node | `status` (incl. pack ADC `vraw`/`vpin`, remote battery `rbatt` from HEARTBEAT), `test` (one HALF → FULL → REST cycle, FR-N07), `beep <ms>`, `reboot`, `scan`, `bcast`, `sim vbat` |
+| node | `status` (incl. pack ADC `vraw`/`vpin`, remote battery `rbatt` from HEARTBEAT), `test` (one HALF → FULL → REST cycle, FR-N07), `beep <ms>`, `reboot`, `scan`, `bcast`, `sim vbat`, `cam off|on` |
 | remote | `status` (incl. ARM line stats `aedges`/`aper`/`aage`/`aisr`, battery ADC `braw`/`bpin`), `screen` (current OLED text), `scan`, `bcast`, `beep <ms>`, `reboot`, `sim …` |
 
 Both log state changes as `EVT <ms> <what>`.
