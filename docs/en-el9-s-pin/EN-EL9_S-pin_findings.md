@@ -1,5 +1,7 @@
 # EN-EL9(a) S-pin: bevindingen (parkeerstand)
 
+> **Update 2026-11-07:** het S-protocol hoeft niet meer nagebootst te worden. De EN-EL9a blijft in de camera (hij beantwoordt zelf de batterijcontrole op S) en de node houdt hem via + en − op max. 8,0 V (floatladen). Een labovoeding op 8,21 V parallel aan de batterij geeft geen foutmelding; de camera fotografeert normaal. Zie spec v0.23 §11.3, PW-06…PW-11. De bevindingen hieronder blijven als achtergrond.
+
 Datum: 2026-10-15. Status: **geparkeerd** — niet verder uitgezocht. De camerabesturing gaat voor.
 Besluit: de ESP32-print wordt **niet** meer vanuit een dummy-batterij gevoed; de camera werkt verder met de originele Nikon-batterij.
 

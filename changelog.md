@@ -423,3 +423,46 @@ David measured the S contact to − on the original EN-EL9a (out of the camera):
 - Tests: host 32 checks (new: HEARTBEAT v2 round-trip, old 1-byte HEARTBEAT rejected); HIL 15/15 (H03 and H12 need the node on its UART bridge, not run).
 - New `firmware/crig/tools/runtime_log.py`: logs the node's native console with host timestamps and asks for `status` every 30 s; reopens the port if it drops; meant to run detached (`setsid nohup …`).
 - Docs: spec v0.22 (§7.2 version, §7.3 HEARTBEAT, FR-N20, history), firmware README.
+
+## 2026-11-07 (cont.) — Camera power by float charging the EN-EL9a (spec v0.23)
+
+Goal: power the D3000 from the node without faking the Nikon battery check on the S contact. Idea: keep the original EN-EL9a in the camera and charge it continuously from the node through + and − only.
+
+### Bench test (lab supply)
+
+- Lab supply CV 8.21 V on the camera's + and − battery contacts, in parallel with a partly discharged EN-EL9a: **no "battery cannot be used"**, camera shoots normally.
+- Supply stayed in CV throughout: 470 mA at the start; 430 mA camera on vs. 330 mA camera off → camera idle ≈ 100 mA (≈ 0.8 W; rough, the charge current was falling between readings). Charge current with the camera off then 270 → 240 → 200 mA. Battery at room temperature.
+- Still to record (T-46): final float current, clean idle current on a full battery, peak current during a burst, battery-level display, power cycles and a re-insertion with the supply connected.
+
+### Design decisions
+
+- **8.0 V max at the camera terminals** (4.0 V/cell): the camera is built for 8.4 V; 8.0 V gives margin for converter tolerance (±2 % of 8.2 V is already 8.36 V) and heat. The battery floats at ~75–85 %, which is enough because it only buffers peaks.
+- Gotron has **no buck-boost with an adjustable current limit** (searched "buck boost", "step up down", "dc-dc", "CC CV"). Chosen: passive current limit.
+
+```
++VBAT (6.0–8.4 V) → U6 Joy-IT BUCKBOOST02 @ 8.00 V → D1 1N5822 → R10 1 Ω 3 W → J2 pin 1 → camera + (parallel with the EN-EL9a)
+```
+
+| Part | Why |
+|---|---|
+| BUCKBOOST02 (FP5139 boost controller, one 4-pin coupled inductor → **SEPIC**, confirmed from photos; MBR10450S/MBR1045OS Schottky; BL1512 probably the MOSFET) | 2S → 2S needs both up and down; SEPIC has no DC path from pack to camera. A plain boost module would pass unlimited current when Vin > Vout |
+| 1N5822 (3 A) | Stops back-feed; the module's feedback divider sits behind its own diode and would slowly drain the EN-EL9a with the node off |
+| 1 Ω 3 W | Passive current limit: ≈ 0.95 A into an EN-EL9a at 6.6 V (≈ Nikon MH-23's 0.9 A); battery settles ≈ 7.6 V with the camera idle, ≈ 7.9 V with it off |
+
+- Optional later upgrade: TI BQ25798 charger IC with its own NTC (not at Gotron).
+
+### Documentation
+
+| File | Change |
+|---|---|
+| `camera-rig-functional-spec.md` | v0.23: §11.3 rewritten (float charging, bench result, charger chain, budget with ~7 Wh charger losses offset by ~6 Wh EN-EL9a buffer); J2 pin 1 from the charger, pin 2 n.c.; §1, §10, §12.1; PW-01 marked historical/resolved, PW-05 updated, PW-06…PW-11 added; T-14 revised, T-46…T-49 added; O-7, O-12, O-22 updated |
+| `crig_node_schematic.svg/.png` | v0.4: camera-supply block redrawn with U6/D1/R10, RS removed, J2 pin 2 n.c.; notes 7 and 9 updated (edited by hand, no generator script exists for the node schematic) |
+| `CRIG_session_handoff.md` | D40 added; D13, D18, O-12 and the bench-status note marked superseded |
+| `gotron_bestellijst.md` | New section "Camera-floatlader": BUCKBOOST02 ×2, 1N5822 ×2, R3W/1E0 ×2, R3W/1E5 ×1 ≈ €14.54 |
+| `docs/en-el9-s-pin/EN-EL9_S-pin_findings.md` | Update banner: S protocol no longer needs reverse-engineering |
+
+### Notes
+
+- **Do not connect J2 while the EN-EL9a is in** until the charger chain is built: on the bench node J2 pin 1 is still raw +VBAT.
+- Charging only 0–45 °C (PW-10): the passive chain has no temperature cut-off.
+- Next: order the parts, run T-47 (chain alone: setpoint over 6.0–8.4 V input, quiescent and reverse current, ≤ 1 A into 6.6 V), then T-46/T-48 with the camera.

@@ -1,7 +1,7 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1910 1000" width="1910" height="1000" font-family="Helvetica, Arial, sans-serif">
 <rect width="1910" height="1000" fill="white"/>
 <text x="20" y="30" font-size="22" text-anchor="start" font-weight="bold" fill="#1f2430">CRIG camera node — schematic</text>
-<text x="20" y="48" font-size="12" text-anchor="start" font-weight="normal" fill="#6b7280">Nikon D3000 wired release (option B) · DRAFT v0.3 · 2026-10-15 · camera interface bench-verified (HALF, FULL, PWR) · spec v0.13 §6.2/§6.3, §11.3, §12.1</text>
+<text x="20" y="48" font-size="12" text-anchor="start" font-weight="normal" fill="#6b7280">Nikon D3000 wired release (option B) · DRAFT v0.4 · 2026-11-07 · camera float charger added · camera interface bench-verified (HALF, FULL, PWR) · spec v0.23 §6.2/§6.3, §11.3, §12.1</text>
 <rect x="20" y="60" width="680" height="720" rx="8" fill="none" stroke="#9aa3b2" stroke-width="1.5" stroke-dasharray="6 4"/>
 <text x="32" y="80" font-size="14" text-anchor="start" font-weight="bold" fill="#6b7280">A · POWER, CAMERA SUPPLY, SENSE, STATUS LED</text>
 <rect x="40" y="105" width="120" height="70" rx="4" fill="none" stroke="#1f2430" stroke-width="2"/>
@@ -73,37 +73,53 @@
 <line x1="629" y1="352" x2="641" y2="352" stroke="#1f2430" stroke-width="2" stroke-linecap="round"/>
 <line x1="633" y1="356" x2="637" y2="356" stroke="#1f2430" stroke-width="2" stroke-linecap="round"/>
 <text x="668" y="304" font-size="12" text-anchor="start" font-weight="bold" fill="#1f2430">+5V</text>
-<text x="40" y="400" font-size="12" text-anchor="start" font-weight="bold" fill="#6b7280">CAMERA SUPPLY</text>
-<text x="40" y="424" font-size="11" text-anchor="start" font-weight="bold" fill="#1f2430">+VBAT (behind SW1)</text>
-<line x1="40" y1="432" x2="245" y2="432" stroke="#1f2430" stroke-width="2" stroke-linecap="round"/>
-<rect x="245" y="412" width="70" height="84" rx="4" fill="none" stroke="#1f2430" stroke-width="2"/>
-<text x="280" y="436" font-size="12" text-anchor="middle" font-weight="bold" fill="#1f2430">J2</text>
-<text x="280" y="452" font-size="10" text-anchor="middle" font-weight="normal" fill="#6b7280">3-pin</text>
-<text x="280" y="464" font-size="10" text-anchor="middle" font-weight="normal" fill="#6b7280">2.54 mm</text>
-<text x="251" y="428" font-size="9" text-anchor="start" font-weight="normal" fill="#6b7280">1</text>
-<text x="251" y="474" font-size="9" text-anchor="start" font-weight="normal" fill="#6b7280">2</text>
-<text x="251" y="492" font-size="9" text-anchor="start" font-weight="normal" fill="#6b7280">3</text>
-<line x1="245" y1="462" x2="200" y2="462" stroke="#1f2430" stroke-width="2" stroke-linecap="round"/>
-<line x1="140" y1="462" x2="152.0" y2="462" stroke="#1f2430" stroke-width="2" stroke-linecap="round"/>
-<line x1="188.0" y1="462" x2="200" y2="462" stroke="#1f2430" stroke-width="2" stroke-linecap="round"/>
-<rect x="152.0" y="455" width="36" height="14" rx="0" fill="white" stroke="#1f2430" stroke-width="2"/>
-<text x="170.0" y="452" font-size="11" text-anchor="middle" font-weight="normal" fill="#1f2430">RS (DNP)</text>
-<line x1="100" y1="462" x2="140" y2="462" stroke="#1f2430" stroke-width="2" stroke-linecap="round"/>
-<text x="60" y="466" font-size="11" text-anchor="start" font-weight="bold" fill="#2563eb">BLU</text>
-<line x1="245" y1="485" x2="230" y2="485" stroke="#1f2430" stroke-width="2" stroke-linecap="round"/>
-<line x1="230" y1="485" x2="230" y2="500" stroke="#1f2430" stroke-width="2" stroke-linecap="round"/>
-<line x1="230" y1="500" x2="230" y2="508" stroke="#1f2430" stroke-width="2" stroke-linecap="round"/>
-<line x1="220" y1="508" x2="240" y2="508" stroke="#1f2430" stroke-width="2" stroke-linecap="round"/>
-<line x1="224" y1="512" x2="236" y2="512" stroke="#1f2430" stroke-width="2" stroke-linecap="round"/>
-<line x1="228" y1="516" x2="232" y2="516" stroke="#1f2430" stroke-width="2" stroke-linecap="round"/>
-<polyline points="315,432 345,432" fill="none" stroke="#dc2626" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"/>
-<text x="351" y="436" font-size="11" text-anchor="start" font-weight="normal" fill="#1f2430">red → camera +</text>
-<polyline points="315,462 345,462" fill="none" stroke="#8b5a2b" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"/>
-<text x="351" y="466" font-size="11" text-anchor="start" font-weight="normal" fill="#1f2430">brown → S</text>
-<polyline points="315,485 345,485" fill="none" stroke="#111111" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"/>
-<text x="351" y="489" font-size="11" text-anchor="start" font-weight="normal" fill="#1f2430">black → camera −</text>
-<text x="40" y="548" font-size="11" text-anchor="start" font-weight="normal" fill="#6b7280" font-style="italic">One fuse only (F1, behind the BMS). Camera and buck are in</text>
-<text x="40" y="562" font-size="11" text-anchor="start" font-weight="normal" fill="#6b7280" font-style="italic">parallel behind SW1: a camera short also takes the node down.</text>
+<text x="40" y="400" font-size="12" text-anchor="start" font-weight="bold" fill="#6b7280">CAMERA SUPPLY — float charger, EN-EL9a stays in</text>
+<text x="40" y="440" font-size="11" text-anchor="start" font-weight="bold" fill="#1f2430">+VBAT</text>
+<line x1="80" y1="436" x2="100" y2="436" stroke="#1f2430" stroke-width="2" stroke-linecap="round"/>
+<rect x="100" y="414" width="104" height="44" rx="4" fill="none" stroke="#1f2430" stroke-width="2"/>
+<text x="152" y="431" font-size="11" text-anchor="middle" font-weight="bold" fill="#1f2430">U6 buck-boost</text>
+<text x="152" y="445" font-size="8.5" text-anchor="middle" font-weight="normal" fill="#6b7280">BUCKBOOST02, SEPIC</text>
+<text x="152" y="455" font-size="9" text-anchor="middle" font-weight="normal" fill="#6b7280">set 8.00 V first</text>
+<line x1="152" y1="458" x2="152" y2="468" stroke="#1f2430" stroke-width="2" stroke-linecap="round"/>
+<line x1="152" y1="468" x2="152" y2="476" stroke="#1f2430" stroke-width="2" stroke-linecap="round"/>
+<line x1="142" y1="476" x2="162" y2="476" stroke="#1f2430" stroke-width="2" stroke-linecap="round"/>
+<line x1="146" y1="480" x2="158" y2="480" stroke="#1f2430" stroke-width="2" stroke-linecap="round"/>
+<line x1="150" y1="484" x2="154" y2="484" stroke="#1f2430" stroke-width="2" stroke-linecap="round"/>
+<line x1="204" y1="436" x2="220" y2="436" stroke="#1f2430" stroke-width="2" stroke-linecap="round"/>
+<polygon points="220,428 220,444 236,436" fill="#1f2430" stroke="#1f2430" stroke-width="1.5"/>
+<line x1="236" y1="428" x2="236" y2="444" stroke="#1f2430" stroke-width="2" stroke-linecap="round"/>
+<text x="248" y="458" font-size="10" text-anchor="middle" font-weight="normal" fill="#1f2430">D1 1N5822</text>
+<line x1="236" y1="436" x2="252" y2="436" stroke="#1f2430" stroke-width="2" stroke-linecap="round"/>
+<rect x="252" y="429" width="36" height="14" rx="0" fill="white" stroke="#1f2430" stroke-width="2"/>
+<text x="270" y="422" font-size="10" text-anchor="middle" font-weight="normal" fill="#1f2430">R10 1 Ω 3 W</text>
+<line x1="288" y1="436" x2="330" y2="436" stroke="#1f2430" stroke-width="2" stroke-linecap="round"/>
+<line x1="330" y1="436" x2="330" y2="474" stroke="#1f2430" stroke-width="2" stroke-linecap="round"/>
+<line x1="330" y1="474" x2="225" y2="474" stroke="#1f2430" stroke-width="2" stroke-linecap="round"/>
+<line x1="225" y1="474" x2="225" y2="500" stroke="#1f2430" stroke-width="2" stroke-linecap="round"/>
+<line x1="225" y1="500" x2="245" y2="500" stroke="#1f2430" stroke-width="2" stroke-linecap="round"/>
+<rect x="245" y="480" width="70" height="84" rx="4" fill="none" stroke="#1f2430" stroke-width="2"/>
+<text x="280" y="504" font-size="12" text-anchor="middle" font-weight="bold" fill="#1f2430">J2</text>
+<text x="280" y="520" font-size="10" text-anchor="middle" font-weight="normal" fill="#6b7280">3-pin</text>
+<text x="280" y="532" font-size="10" text-anchor="middle" font-weight="normal" fill="#6b7280">2.54 mm</text>
+<text x="251" y="496" font-size="9" text-anchor="start" font-weight="normal" fill="#6b7280">1</text>
+<text x="251" y="542" font-size="9" text-anchor="start" font-weight="normal" fill="#6b7280">2</text>
+<text x="251" y="560" font-size="9" text-anchor="start" font-weight="normal" fill="#6b7280">3</text>
+<line x1="245" y1="530" x2="232" y2="530" stroke="#1f2430" stroke-width="2" stroke-linecap="round"/>
+<text x="228" y="534" font-size="10" text-anchor="end" font-weight="normal" fill="#6b7280">n.c.</text>
+<line x1="245" y1="553" x2="232" y2="553" stroke="#1f2430" stroke-width="2" stroke-linecap="round"/>
+<line x1="232" y1="553" x2="232" y2="566" stroke="#1f2430" stroke-width="2" stroke-linecap="round"/>
+<line x1="232" y1="566" x2="232" y2="574" stroke="#1f2430" stroke-width="2" stroke-linecap="round"/>
+<line x1="222" y1="574" x2="242" y2="574" stroke="#1f2430" stroke-width="2" stroke-linecap="round"/>
+<line x1="226" y1="578" x2="238" y2="578" stroke="#1f2430" stroke-width="2" stroke-linecap="round"/>
+<line x1="230" y1="582" x2="234" y2="582" stroke="#1f2430" stroke-width="2" stroke-linecap="round"/>
+<polyline points="315,500 345,500" fill="none" stroke="#dc2626" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"/>
+<text x="350" y="504" font-size="10" text-anchor="start" font-weight="normal" fill="#1f2430">red → cam +</text>
+<polyline points="315,530 345,530" fill="none" stroke="#8b5a2b" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"/>
+<text x="350" y="534" font-size="10" text-anchor="start" font-weight="normal" fill="#1f2430">brown: S, n.c.</text>
+<polyline points="315,553 345,553" fill="none" stroke="#111111" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"/>
+<text x="350" y="557" font-size="10" text-anchor="start" font-weight="normal" fill="#1f2430">black → cam −</text>
+<text x="40" y="600" font-size="11" text-anchor="start" font-weight="normal" fill="#6b7280" font-style="italic">Camera + / − in parallel with the EN-EL9a (it answers the S check). ≤ 8.0 V, ≤ 1 A</text>
+<text x="40" y="614" font-size="11" text-anchor="start" font-weight="normal" fill="#6b7280" font-style="italic">(§11.3, PW-06…PW-11). Never raw +VBAT on J2 while the battery is in. One fuse (F1).</text>
 <text x="440" y="400" font-size="12" text-anchor="start" font-weight="bold" fill="#6b7280">PACK VOLTAGE SENSE</text>
 <text x="480" y="424" font-size="11" text-anchor="middle" font-weight="bold" fill="#1f2430">+VBAT</text>
 <line x1="480" y1="428" x2="480" y2="440" stroke="#1f2430" stroke-width="2" stroke-linecap="round"/>
@@ -134,12 +150,12 @@
 <line x1="528" y1="552" x2="532" y2="552" stroke="#1f2430" stroke-width="2" stroke-linecap="round"/>
 <text x="576" y="504" font-size="12" text-anchor="start" font-weight="bold" fill="#1f2430">VBAT_SENSE → IO1</text>
 <text x="576" y="488" font-size="10" text-anchor="start" font-weight="normal" fill="#6b7280">2.69 V at 8.4 V</text>
-<text x="40" y="610" font-size="12" text-anchor="start" font-weight="bold" fill="#6b7280">STATUS LED</text>
-<rect x="40" y="625" width="600" height="110" rx="4" fill="none" stroke="#1f2430" stroke-width="2"/>
-<text x="55" y="650" font-size="12" text-anchor="start" font-weight="bold" fill="#1f2430">On-board WS2812 RGB LED of U1 (data on IO48 on a v1.0 board, IO38 on v1.1)</text>
-<text x="55" y="672" font-size="11" text-anchor="start" font-weight="normal" fill="#1f2430">No external parts. Patterns per §9.3, same driver approach as the RLC.</text>
-<text x="55" y="690" font-size="11" text-anchor="start" font-weight="normal" fill="#1f2430">The LED sits inside the enclosure: use a small light pipe or window and keep</text>
-<text x="55" y="705" font-size="11" text-anchor="start" font-weight="normal" fill="#1f2430">it out of the lens view (no flare, not in frame). Check the board revision first.</text>
+<text x="40" y="640" font-size="12" text-anchor="start" font-weight="bold" fill="#6b7280">STATUS LED</text>
+<rect x="40" y="655" width="600" height="110" rx="4" fill="none" stroke="#1f2430" stroke-width="2"/>
+<text x="55" y="680" font-size="12" text-anchor="start" font-weight="bold" fill="#1f2430">On-board WS2812 RGB LED of U1 (data on IO48 on a v1.0 board, IO38 on v1.1)</text>
+<text x="55" y="702" font-size="11" text-anchor="start" font-weight="normal" fill="#1f2430">No external parts. Patterns per §9.3, same driver approach as the RLC.</text>
+<text x="55" y="720" font-size="11" text-anchor="start" font-weight="normal" fill="#1f2430">The LED sits inside the enclosure: use a small light pipe or window and keep</text>
+<text x="55" y="735" font-size="11" text-anchor="start" font-weight="normal" fill="#1f2430">it out of the lens view (no flare, not in frame). Check the board revision first.</text>
 <rect x="710" y="60" width="440" height="720" rx="8" fill="none" stroke="#9aa3b2" stroke-width="1.5" stroke-dasharray="6 4"/>
 <text x="722" y="80" font-size="14" text-anchor="start" font-weight="bold" fill="#6b7280">B · MCU (ESP32-S3 dev board)</text>
 <rect x="940" y="140" width="160" height="560" rx="6" fill="none" stroke="#1f2430" stroke-width="2"/>
@@ -399,7 +415,7 @@
 <text x="32" y="900" font-size="11.5" text-anchor="start" font-weight="normal" fill="#1f2430">4. U5 (green line) is optional: shorting GRN to BLU switches the camera off, an open opto lets the knob decide (ON). Feature is off by default.</text>
 <text x="32" y="918" font-size="11.5" text-anchor="start" font-weight="normal" fill="#1f2430">5. The buck feeds 5.0 V to the dev board's 5V0 pin and its on-board LDO makes 3.3 V. Power options are mutually exclusive: no USB while the pack is on.</text>
 <text x="32" y="936" font-size="11.5" text-anchor="start" font-weight="normal" fill="#1f2430">6. Capacitors: C1 100 µF, C2 47 µF, C3 100 nF. Resistors 1 % metal film. Gotron references in gotron_bestellijst.md. Buck min. input ≈ 6.0 V (node cutoff 6.6 V).</text>
-<text x="32" y="954" font-size="11.5" text-anchor="start" font-weight="normal" fill="#1f2430">7. Camera cable: 7 conductors, 2 connectors. J2 (3-pin): red +, brown S, black −; S wire is blue like BLU: tag it. J3 (4-pin): orange FULL, red HALF, brown ON/OFF, black = BLU. Brown/black repeat: different nets.</text>
+<text x="32" y="954" font-size="11.5" text-anchor="start" font-weight="normal" fill="#1f2430">7. Camera cable: 7 conductors. J2: red + (float charger), brown S (n.c.), black −; S wire is blue like BLU: tag it. J3: orange FULL, red HALF, brown ON/OFF, black = BLU. Brown/black repeat: different nets.</text>
 <text x="32" y="972" font-size="11.5" text-anchor="start" font-weight="normal" fill="#1f2430">8. BZ1 active buzzer: + to IO7 (as built; was drawn on IO15), − to GND, direct drive (2 mA at 3.3 V measured). One fixed pitch: patterns by rhythm only.</text>
-<text x="32" y="990" font-size="11.5" text-anchor="start" font-weight="normal" fill="#1f2430">9. Not yet verified: camera powered from the node (S contact parked, O-12), camera current (O-11), 5 V dev-board current, buck, final GPIO map.</text>
+<text x="32" y="990" font-size="11.5" text-anchor="start" font-weight="normal" fill="#1f2430">9. Not yet verified: camera float charger U6/D1/R10 (T-46…T-48, O-12; lab supply at 8.21 V OK 2026-11-07), camera current (O-11), 5 V dev-board current, buck, final GPIO map.</text>
 </svg>

@@ -37,6 +37,18 @@ Prijzen incl. btw, opgehaald op 2026-10-07 (kortingsprijs waar van toepassing). 
 - TPS63020 en BQ24074 (remote)
 - Grote gele SHOOT-knop, ARM-toggle met beugel, TEST/MENU-knoppen, schuifschakelaar
 
+## Camera-floatlader (spec v0.23 §11.3, nog te bestellen)
+
+EN-EL9a blijft in de camera; de node houdt hem op max. 8,0 V. Prijzen incl. btw, opgehaald op 2026-11-07. Gotron heeft geen buck-boost met instelbare stroombegrenzing; de stroom wordt passief begrensd met diode + weerstand.
+
+| Gotron-ref. | Onderdeel | Aantal | Stukprijs | Totaal | Opmerking |
+|---|---|---|---|---|---|
+| BUCKBOOST02 | [DC-DC buck-boost Joy-IT SBC-BuckBoost02, 5–25 V → 3–25 V, 2 A, 30 W](https://www.gotron.be/dc-dc-buck-boost-converter-joy-it-5-25v-naar-3-25v-30w-2a.html) | 2 | €5,90 | €11,80 | 1 + 1 reserve. Op **8,00 V** zetten en meten vóór aansluiten. Chips op de foto's: FP5139 (boost-controller) met één spoel met 4 pinnen = SEPIC (bevestigd), MBR10450S/MBR1045OS (Schottky 10 A / 45 V), BL1512 (vermoedelijk MOSFET). Geen instelbare stroomgrens. Ruststroom meten (T-47). Alternatief met display: [BUCKBOOST01](https://www.gotron.be/voltage-converter-met-step-up-en-step-down-functie-met-display-joy-it.html) €11,91 (LM2577 + LM2596, minder efficiënt) |
+| 1N5822 | [Schottky 1N5822, 3 A](https://www.gotron.be/diode-1n5822.html) | 2 | €0,65 | €1,30 | Terugvoedingsblokkade; 1N5819 (1 A) is te krap bij ~0,95 A |
+| R3W/1E0 | [1 Ω 3 W metaaloxide 5 %](https://www.gotron.be/3w-metaaloxide-weerstand-5-1-ohm.html) | 2 | €0,48 | €0,96 | Stroombegrenzing (max ≈ 0,95 A, ≈ 0,9 W) |
+| R3W/1E5 | [1,5 Ω 3 W metaaloxide 5 %](https://www.gotron.be/3w-metaaloxide-weerstand-5-1-5-ohm.html) | 1 | €0,48 | €0,48 | Optioneel: als 0,95 A te warm blijkt (dan max ≈ 0,65 A) |
+| | **Totaal** | | | **€14,54** | Voorraad van de diode en weerstanden niet gecontroleerd |
+
 ## Nog niet besteld / wachten op test
 
 - NTC100 ([Gotron](https://www.gotron.be/ntc-thermistor-100ohm-10-tolerance.html)), ref. NTC100: alleen als de vaste 100 Ω op S niet volstaat of je echte celtemperatuur wilt
