@@ -477,3 +477,41 @@ Goal: power the D3000 from the node without faking the Nikon battery check on th
 - Gotcha: opening the node's UART-bridge port resets the node, which releases U5; run a whole sequence in one console session (scratch helper `camseq.py`, sends timed commands and prints `EVT` lines).
 - Docs: spec v0.24 (§13 `t_cam_boot`, §14.4 results table, T-40/T-41, O-14, history); firmware README (node console); handoff D41.
 - Next: camera current when switched off (supply in CV), T-42 card write-out after a 20-frame burst, T-43…T-45; then implement `cam_power_ctrl` and redo the pack sizing (§11.3) with the measured off-current.
+
+## 2026-11-09 — Float charger chain built and bench-tested (spec v0.25, schematic v0.5)
+
+### 1. Goal
+David built the camera float charger on the bench node: U6 Joy-IT BUCKBOOST02 → D1 1N5822 → R10 **1.5 Ω 3 W** (not the 1 Ω from v0.23) → J2 pin 1, with the EN-EL9a staying in the camera. Run T-47/T-48 and try to measure the camera's switched-off current.
+
+### 2. Results
+
+| Check | Result |
+|---|---|
+| Setpoint | U6 out 8.015 V; **8.00 V at J2 at no load**, held over a 6–9 V input sweep (U6 regulates both ways) |
+| Camera on / off | 0.201 → 0.196 V across R10 with the camera on (≈ 131 mA), 0.152 V off (≈ 101 mA); J2 7.510 V, so D1 ≈ 0.30 V |
+| Input independence | 5.97 / 7.36 / 8.36 V in → 0.191 / 0.197 / 0.200 V across R10 |
+| Burst | J2 sags 7.34 → 6.77 V; no reset after the contact fix |
+| Temperature, back-feed | OK |
+| `cam off` / `cam on` through the chain | Works; supply 89 vs 90 mA, no visible difference |
+
+### 3. Gotchas
+- **1N5822 in backwards:** J2 followed the input up to 10 V. Turned round, U6 regulates.
+- **Loose ground** gave false readings.
+- **Poor input contact:** during bursts +VBAT at the node dipped to ≈ 4.4 V (node log) while the lab supply showed a steady 8.35 V; the ESP32 browned out (beep). U6 is a constant-power load, so series resistance in its input collapses it. Fixed. USB on the node masks this (back-feeds ≈ 3.7 V). The first suspicion (supply current limit 0.7 A) was disproven by the log.
+- Native USB console: send a blank line before the first command, or it arrives garbled.
+
+### 4. Camera off-current: not measurable through the chain
+With the EN-EL9a in parallel, the node current is (8.0 − 0.3 − V_batt) / 1.5 Ω, set by the battery voltage, not the camera load. Proper method: lab supply in CV at 8.0 V straight on the camera leads, wait until the current is steady and low (full battery), then compare camera on / `cam off` / `cam on`.
+
+### 5. Documentation
+
+| File | Change |
+|---|---|
+| `camera-rig-functional-spec.md` | v0.25: §11.3 chain with 1.5 Ω, bench results table, gotchas, off-current method; spec-table row, PW-07, T-47 (mostly passed), T-48 (partly passed), O-12, §14.4 note, history |
+| `crig_node_schematic.svg/.png` | v0.5: R10 1.5 Ω, U6 label "8.00 V at J2, no load", note 9 |
+| `gotron_bestellijst.md` | 1.5 Ω marked as built, 1 Ω as first design value |
+| `CRIG_session_handoff.md` | D42 |
+
+### 6. Next
+- Camera off-current on a lab supply in CV with a full battery (pack sizing 2S2P vs 2S3P).
+- Full 1 h T-48 run; T-46 remainder; U6 quiescent current; T-42…T-45; implement `cam_power_ctrl`; T-49.

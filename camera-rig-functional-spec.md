@@ -3,7 +3,7 @@
 | | |
 |---|---|
 | **Document** | Camera Rig (CRIG) — Functional Specification |
-| **Version** | 0.24 (draft) |
+| **Version** | 0.25 (draft) |
 | **Date** | 2026-11-07 |
 | **Author** | David Steeman |
 | **Status** | Draft — wired release (option B) selected; camera power: EN-EL9a stays in and is float-charged by the node at ≤ 8.0 V, validated on a lab supply, converter chain to build (O-12); remote simplified (no arming, SHOOT only) |
@@ -592,19 +592,38 @@ Power-bank module checks (owner, 2026-11-03, on battery with USB unplugged), all
 **Camera float charger (node design).** Gotron stocks no buck-boost module with an adjustable current limit (searched 2026-11-07), so the current is limited passively:
 
 ```
-switched +VBAT (6.0–8.4 V) ── Joy-IT BUCKBOOST02, set to 8.00 V ── 1N5822 Schottky ── 1 Ω 3 W ── J2 pin 1 → camera + (parallel with the EN-EL9a)
+switched +VBAT (6.0–8.4 V) ── Joy-IT BUCKBOOST02 ── 1N5822 Schottky ── 1.5 Ω 3 W ── J2 pin 1 (8.00 V here at no load) → camera + (parallel with the EN-EL9a)
 pack − ───────────────────────────────────────────────────────────────────────────── J2 pin 3 → camera −
 ```
 
 - **Buck-boost:** the node pack and the EN-EL9a are both 2S, so the input can be above or below the output. A plain boost module is not allowed: with the input above the output it passes current through its inductor and diode without limit. A plain buck cannot reach 8.0 V from a half-empty pack.
 - **Schottky diode:** blocks back-feed from the EN-EL9a into the converter and the node when the node is off or its pack is flat.
-- **1 Ω resistor:** limits the charge current. With the diode it also means the battery can never get above the converter setpoint, even at zero current.
-  - Worst case, EN-EL9a nearly empty at 6.6 V: (8.0 − 0.45 − 6.6) / 1 Ω ≈ **0.95 A**. That is the MH-23's own rating. The resistor dissipates ≈ 0.9 W and the diode ≈ 0.45 W.
-  - Camera on and idle (≈ 0.1 A): the battery settles at ≈ 8.0 − 0.3 − 0.1 ≈ **7.6 V**, about half charge. With the camera off it creeps towards ≈ 7.9 V.
+- **1.5 Ω resistor (as built 2026-11-09; 1 Ω was the first design value):** limits the charge current. With the diode it also means the battery can never get above the converter setpoint, even at zero current.
+  - Worst case, EN-EL9a nearly empty at 6.6 V: (8.0 − 0.45 − 6.6) / 1.5 Ω ≈ **0.65 A**, below the MH-23's 0.9 A. The resistor dissipates ≈ 0.6 W and the diode ≈ 0.3 W.
+  - Camera on and idle: measured **7.51 V** at J2 with ≈ 131 mA (U6 8.01 V, D1 ≈ 0.30 V, 0.20 V across R10), about half charge. With the camera off it creeps towards ≈ 7.8–7.9 V.
   - Trade-off: the battery buffer is about half full while the camera is on, not near full. That is acceptable because the node supplies the average current.
 - **Later upgrade (optional):** a real buck-boost charger IC (e.g. TI BQ25798, 1–4S, I²C) with its own NTC on the battery or grip, which blocks charging outside 0–45 °C and lets the ESP32 set and read the current. It is not stocked by Gotron.
 
-**Camera supply voltage (historical, v0.4–v0.22):** the original plan removed the EN-EL9a and fed the camera straight from the 2S node pack (6.0–8.4 V). That fails the Nikon battery check (PW-01) and is dropped. Until the float charger chain is built, J2 must not be connected while the EN-EL9a is in the camera (J2 pin 1 is still raw +VBAT on the bench node, D38).
+**Camera supply voltage (historical, v0.4–v0.22):** the original plan removed the EN-EL9a and fed the camera straight from the 2S node pack (6.0–8.4 V). That fails the Nikon battery check (PW-01) and is dropped. The float charger chain was built on the bench node on 2026-11-09, so J2 pin 1 no longer carries raw +VBAT (PW-11).
+
+**Float charger chain on the bench, 2026-11-09** (U6 + D1 + R10 1.5 Ω on the bench node, lab supply as the pack, EN-EL9a in the camera):
+
+| Check | Result |
+|---|---|
+| Setpoint | U6 output 8.015 V; **8.00 V at J2 at no load**, held over a 6–9 V input sweep (U6 really regulates, both buck and boost) |
+| Charging, camera on / off | 0.201 → 0.196 V across R10 with the camera on (≈ 131 mA), 0.152 V with it off (≈ 101 mA); J2 7.510 V, U6 8.01 V, so D1 ≈ 0.30 V |
+| Input independence | 5.97 V in → 0.191 V, 7.36 V → 0.197 V, 8.36 V → 0.200 V across R10 |
+| 20-frame burst | J2 sags 7.34 → 6.77 V (the battery supplies the peaks); no node reset or drop-out after a bad contact was fixed (see below) |
+| Temperature | Resistor, diode, converter and battery fine |
+| Back-feed, node off | OK (no measurable current from the EN-EL9a into the node) |
+| `cam off` / `cam on` through the chain | Works; supply current 89 vs 90 mA, **no visible difference** (see below) |
+
+Gotchas found while building it:
+- The 1N5822 was soldered in backwards. J2 then followed the input up to 10 V, because the current flowed through the module's own diode path. With the diode the right way round, U6 regulates.
+- A loose ground gave false readings too.
+- A poor contact between the supply and the node/U6: under burst current, +VBAT at the node dipped to ≈ 4.4 V while the lab supply showed a steady 8.35 V, and the ESP32 browned out (beep, R10 voltage to 0). U6 is a constant-power load, so any series resistance in its input collapses the input. Cause found and fixed; a USB cable on the node hides this (it back-feeds ≈ 3.7 V).
+
+**Why the camera's own current does not show at the node:** with the EN-EL9a in parallel, the node current is set by (8.0 − 0.3 − V_battery) / 1.5 Ω, so by the battery voltage, not by the camera load. Switching the camera off only makes the battery charge a little faster; the node current changes once the battery voltage has moved, over tens of minutes. To measure the switched-off current (T-42 prerequisite for pack sizing): lab supply in CV at 8.0 V straight on the camera leads, wait until the current is steady and low (battery practically full, < 10 mA with the camera off), then compare camera on, `cam off` and `cam on`.
 
 **Consumption estimate** — camera figures are estimates to be verified by measurement (O-11):
 
@@ -629,7 +648,7 @@ pack − ───────────────────────�
 | Fuse | **One** fuse directly behind the BMS output, before the main switch, protecting everything behind it: 2.5 A slow-blow (5 × 20 mm). Raise to 5 A if the camera peak current measured in O-11/T-33 requires it |
 | Main switch | Powers node and camera together |
 | Camera branch | From the switched +VBAT (no own fuse), in parallel with the node buck → camera float charger (below) → camera lead: 2 × 0.5 mm² silicone wire, ≤ 0.5 m, detachable polarised 2.54 mm connector J2 (3-pin, §6.2) at the node |
-| Camera float charger | Joy-IT SBC-BuckBoost02 (Gotron BUCKBOOST02; 5–25 V in, 3–25 V out, 2 A, 30 W, ≤ 89 %), output set to **8.00 V ± 0.03 V** at no load and measured before connecting; then 1N5822 Schottky (3 A) and 1 Ω 3 W metal-oxide resistor in series to J2 pin 1. Max ≈ 0.95 A into an empty EN-EL9a (PW-06…PW-08). Chips seen on the Gotron photos (2026-11-07): FP5139 (Feeling Technology asynchronous **boost** PWM controller), MBR10450S or MBR1045OS (marking unclear; either way an MBR1045-class Schottky, 10 A / 45 V), BL1512 (not identified; probably the switching MOSFET). The board has one 4-pin coil (coupled inductor), so it is a **SEPIC** (confirmed 2026-11-07): input and output are coupled through a capacitor (no DC path from pack to camera) and the output passes the Schottky. There is no settable output current limit, so the 1 Ω stays. The 1N5822 stays too: the module's feedback divider sits behind its own diode and would slowly drain the EN-EL9a with the node off. Quiescent current and setpoint stability over 6.0–8.4 V input to be confirmed on the board (T-47) |
+| Camera float charger | Joy-IT SBC-BuckBoost02 (Gotron BUCKBOOST02; 5–25 V in, 3–25 V out, 2 A, 30 W, ≤ 89 %), output set to **8.00 V ± 0.03 V** at no load and measured before connecting; then 1N5822 Schottky (3 A) and 1.5 Ω 3 W metal-oxide resistor in series to J2 pin 1. Max ≈ 0.65 A into an empty EN-EL9a (PW-06…PW-08). Chips seen on the Gotron photos (2026-11-07): FP5139 (Feeling Technology asynchronous **boost** PWM controller), MBR10450S or MBR1045OS (marking unclear; either way an MBR1045-class Schottky, 10 A / 45 V), BL1512 (not identified; probably the switching MOSFET). The board has one 4-pin coil (coupled inductor), so it is a **SEPIC** (confirmed 2026-11-07): input and output are coupled through a capacitor (no DC path from pack to camera) and the output passes the Schottky. There is no settable output current limit, so the series resistor stays. The 1N5822 stays too: the module's feedback divider sits behind its own diode and would slowly drain the EN-EL9a with the node off. Setpoint stability confirmed on the board 2026-11-09: 8.00 V at J2 over 6–9 V input (T-47); quiescent current not yet recorded |
 | Node logic | Buck converter 2S → 5.0 V, ≥ 1 A (e.g. MP1584 module, set and measured before connecting), feeding the 5V0 pin of the dev board; its on-board LDO makes 3.3 V. Input must stay ≥ ~6.0 V (`v_node_cutoff` 6.6 V). USB must not be connected while the pack powers the board |
 | Servo (option A) | Separate buck converter 2S → 5 V, ≥ 3 A peak, ≥ 470 µF bulk capacitor at the servo |
 | Monitoring | Pack voltage divider to ADC; `v_node_warn` 7.0 V (~20 %), `v_node_cutoff` 6.6 V |
@@ -646,7 +665,7 @@ pack − ───────────────────────�
 | PW-04 | With option B (wired release), the shutter wires (COMMON, HALF, FULL) may share one multi-core cable with the camera power leads. |
 | PW-05 | The camera's own battery gauge shows the EN-EL9a (float-charged, ~75–85 %) and says nothing about the node pack; the node's pack voltage reading on the remote is authoritative. |
 | PW-06 | The voltage at the camera's battery terminals shall never exceed **8.0 V** (4.0 V per cell) from the node. The float charger is set to 8.00 V ± 0.03 V at no load, measured at its output before it is first connected and after any adjustment. |
-| PW-07 | The current into the camera terminals shall be limited to ≤ 1.0 A for any EN-EL9a state (1 Ω series resistor: ≈ 0.95 A at 6.6 V). |
+| PW-07 | The current into the camera terminals shall be limited to ≤ 1.0 A for any EN-EL9a state (1.5 Ω series resistor: ≈ 0.65 A at 6.6 V). |
 | PW-08 | With the node off or its pack flat, the EN-EL9a shall not discharge into the node (series Schottky diode; reverse current < 0.1 mA, measured in T-47). |
 | PW-09 | The S contact stays between the EN-EL9a and the camera only; J2 pin 2 is not connected to the node (bench sniffer only). |
 | PW-10 | Charging only between 0 °C and 45 °C. The passive chain has no temperature cut-off, so this is an operating rule: keep the camera body out of direct sun, and do not run the float charger on a camera that has been below 0 °C until it has warmed up. |
@@ -656,13 +675,13 @@ pack − ───────────────────────�
 
 ### 12.1 Node
 
-Draft schematic: `crig_node_schematic.svg` (PNG alongside), v0.4 (2026-11-07, camera float charger U6/D1/R10 added), not bench-validated; the GPIO assignment in it (IO1 VBAT sense, IO4 FULL, IO5 HALF, IO6 camera power, IO15 buzzer (as built: IO7); status LED = on-board WS2812 on IO48/IO38) is a proposal.
+Draft schematic: `crig_node_schematic.svg` (PNG alongside), v0.5 (2026-11-09, R10 1.5 Ω as built; float charger U6/D1/R10 added in v0.4), not fully bench-validated; the GPIO assignment in it (IO1 VBAT sense, IO4 FULL, IO5 HALF, IO6 camera power, IO15 buzzer (as built: IO7); status LED = on-board WS2812 on IO48/IO38) is a proposal.
 
 - ESP32-S3-DevKitC-1 dev board (same as the RLC), powered at 5 V by the node buck; on-board LDO, EN reset network, BOOT/RESET buttons and USB-C used for flashing
 - Node and camera pack per §11.3
 - Actuator output: servo header (option A) and/or 2 × optocoupler output with connector (option B); optional third optocoupler for the camera on/off line (§6.3)
 - Active buzzer on GPIO7 (as built; the draft said GPIO15), + to GPIO7 and − to GND, direct drive (2 mA measured at 3.3 V). An active buzzer has one fixed pitch, so patterns are made by rhythm only
-- Camera float charger (§11.3): BUCKBOOST02 at 8.00 V → 1N5822 → 1 Ω 3 W → J2 pin 1
+- Camera float charger (§11.3): BUCKBOOST02 → 1N5822 → 1.5 Ω 3 W → J2 pin 1 (8.00 V at no load)
 - Camera connectors: J2 (3-pin, camera supply from the float charger; pin 2 S not used) and J3 (4-pin, signals), 2.54 mm polarised (§6.2); status LED (on-board WS2812 of the dev board, §9.3), USB-C of the dev board for firmware and serial console
 - Splash-resistant enclosure fixed to the camera bracket; grit and exhaust shielding for the camera
 
@@ -743,8 +762,8 @@ RLC-side parameters (`cam_lead_ms`, `cam_post_ms`, `cam_max_ms` and the ARM patt
 | T-13 | Cable unplugged / no ARM pattern, TRIG forced on | TRIG ignored, no SHOOT; status NONE (or LOST if a heartbeat was seen since power-on) |
 | T-14 | Camera powered through the float charger from the node pack (bench supply 6.0–8.4 V on the node input, then the real pack), EN-EL9a in | Camera operates normally over the full input range; no "battery cannot be used"; voltage at the camera terminals ≤ 8.0 V (PW-06) |
 | T-46 | Float charging on a lab supply (CV 8.21 V, camera terminals, EN-EL9a in). **Partly passed 2026-11-07** (no error, shoots, 470 → 200 mA taper in CV, battery at room temperature, §11.3) | Still to record: final float current with the camera off; clean idle current on a full battery; highest current in a 20-frame burst and whether the supply leaves CV; battery-level display plausible; 5 power cycles and one battery re-insertion with the supply connected without an error; battery stays cool |
-| T-47 | Float charger chain on the bench before connecting the camera: BUCKBOOST02 + 1N5822 + 1 Ω, input swept 6.0–8.4 V | No-load output 8.00 V ± 0.03 V at every input, no overshoot at switch-on; converter quiescent current recorded; with the input off, reverse current from a battery at 8.0 V < 0.1 mA (PW-08); into a 6.6 V load (lab supply in sink mode or an empty EN-EL9a) ≤ 1.0 A (PW-07) |
-| T-48 | Float charger with the camera, 1 h: EN-EL9a partly empty at the start, camera on, bursts every 5 min | No error; battery settles around 7.6 V with the camera on; resistor, diode and converter hand-warm at most; battery at room temperature |
+| T-47 | Float charger chain on the bench before connecting the camera: BUCKBOOST02 + 1N5822 + 1.5 Ω, input swept 6.0–8.4 V. **Mostly passed 2026-11-09** (8.00 V at J2 over 6–9 V input, back-feed OK, §11.3); quiescent current and the ≤ 1.0 A check into 6.6 V not measured (calculated ≈ 0.65 A) | No-load output 8.00 V ± 0.03 V at every input, no overshoot at switch-on; converter quiescent current recorded; with the input off, reverse current from a battery at 8.0 V < 0.1 mA (PW-08); into a 6.6 V load (lab supply in sink mode or an empty EN-EL9a) ≤ 1.0 A (PW-07) |
+| T-48 | Float charger with the camera, 1 h: EN-EL9a partly empty at the start, camera on, bursts every 5 min. **Partly passed 2026-11-09** (no error, bursts without node reset, J2 7.51 V with the camera idle, everything cool, §11.3); the full 1 h run is still to do | No error; battery settles around 7.6 V with the camera on; resistor, diode and converter hand-warm at most; battery at room temperature |
 | T-49 | Float charger across a launch day (with T-31) | Camera never shuts down for low battery; pack energy used recorded and compared with §11.3 |
 | T-15 | Galvanic isolation of the RLC interface | ≥ 10 MΩ between pins 1–3 and remote ground |
 | T-16 | Short in the camera lead (via fuse test load) | The pack fuse opens; nothing smokes, the BMS does not trip first |
@@ -797,7 +816,7 @@ RLC-side parameters (`cam_lead_ms`, `cam_post_ms`, `cam_max_ms` and the ARM patt
 | `test` 1.0 / 0.5 / 0.2 s after `cam on` (camera on USB) | Frames DSC_4818–4820, 10.5 s apart = command spacing |
 | `test` 1.0 / 0.5 / 0.2 / ≈ 0 s after `cam on` (USB unplugged) | Frames DSC_4821–4824, all four cycles |
 
-Conclusion: the green line does not cut the camera's power, it only signals the processor, which accepts HALF immediately on release. Not measured yet: the camera's current while switched off this way (needs the supply in CV, e.g. on a full battery), card write-out time (T-42), T-43…T-45. Note: opening the node's UART-bridge port resets the node (U5 released), so a test sequence must run in one console session.
+Conclusion: the green line does not cut the camera's power, it only signals the processor, which accepts HALF immediately on release. Not measured yet: the camera's current while switched off this way (a try through the float charger on 2026-11-09 gave 89 vs 90 mA, which says nothing because the EN-EL9a buffers the load; method in §11.3), card write-out time (T-42), T-43…T-45. Note: opening the node's UART-bridge port resets the node (U5 released), so a test sequence must run in one console session.
 
 ### 14.5 Automated tests (firmware v0.19)
 
@@ -896,7 +915,7 @@ Both ADCs read ~1.5 % low against the meter (ESP32-S3 calibration spread at 12 d
 | O-22 | **Closed 2026-11-06.** Node VBAT sense read the ADC ceiling (9864 mV) whatever the supply: R1 and R2 were swapped (47 k on top). Swapped back; reads within 1 % (§14.5). Found on the way: USB back-feeds ~3.7 V onto +VBAT through the buck, so `v_no_supply` is now 4.5 V (FR-N10). Never feed more than 8.4 V: J2 passes the supply to the camera unregulated (until the float charger of §11.3 is built; then J2 is ≤ 8.0 V) |
 | O-10 | ~~Isolated DC-DC converter~~ — closed: no longer needed; the remote has its own battery and the interface is fully optically isolated |
 | O-11 | Measure the D3000's actual current draw (standby, meters active, during a burst) and update the §11.3 budget |
-| O-12 | Camera power from the node. The EN-EL9a S contact (≈100 kΩ NTC-like plus 9600 baud data) cannot be faked with a resistor (PW-01). **Approach decided 2026-11-07:** keep the EN-EL9a in and float-charge it at ≤ 8.0 V through + and − (§11.3, PW-06…PW-11); a lab supply at 8.21 V works without error (T-46 partly passed). Open until the BUCKBOOST02 + 1N5822 + 1 Ω chain is built and T-46…T-48 pass. The S-line reverse-engineering (`firmware/ssniff`) is no longer needed |
+| O-12 | Camera power from the node. The EN-EL9a S contact (≈100 kΩ NTC-like plus 9600 baud data) cannot be faked with a resistor (PW-01). **Approach decided 2026-11-07:** keep the EN-EL9a in and float-charge it at ≤ 8.0 V through + and − (§11.3, PW-06…PW-11); a lab supply at 8.21 V works without error (T-46 partly passed). Chain BUCKBOOST02 + 1N5822 + 1.5 Ω built and on the bench 2026-11-09 (T-47 mostly, T-48 partly passed). Open until T-46 and the 1 h T-48 run pass. The S-line reverse-engineering (`firmware/ssniff`) is no longer needed |
 | O-13 | ~~Shutter/power flex pinout~~ — closed: blue = COMMON, yellow = HALF, white = FULL, green = on/off (§6.2, §6.3) |
 | O-16 | Node dev board antenna: DevKitC-1 (PCB antenna) vs. -1U (u.FL); decide after the range test (T-30). Also measure the dev board current at 5 V |
 | O-18 | ~~SHOOT button~~ — closed 2026-11-03: plain push button + two separate 3 mm LEDs (green IO10, red IO11), direct GPIO drive. Original text: choose an illuminated type with a bi-colour (or two-colour) ring whose LEDs light at ≤ 3.3 V per colour and a few mA, since they are driven directly from GPIOs (no drivers). Series resistor values follow from the chosen ring. The three discrete LEDs are dropped (v0.15) |
@@ -958,6 +977,7 @@ T-21 to T-27 (§14.2), to be added to the RLC test specification with RLC-side I
 | 0.1 | 2026-09-27 | Initial draft |
 | 0.2 | 2026-09-27 | Added node power options, closed O-4, added O-7 |
 | 0.3 | 2026-09-27 | Two scenarios (RLC automatic / third-party manual); CRIG remote as the node's only controller; wired RLC interface with power from the base battery and single TRIG line; default channel changed to 1 (RLC on 11), O-2 closed; camera wake handled by the node only; no pad matching; integration tests; Appendix A RLC change request |
+| 0.25 | 2026-11-09 | Float charger chain built on the bench node and tested (§11.3 results table): R10 is 1.5 Ω (max ≈ 0.65 A), 8.00 V at J2 at no load over 6–9 V input, J2 7.51 V with the camera idle, bursts OK, back-feed OK; gotchas (reversed 1N5822, loose ground, poor input contact → ESP32 brownout); why the camera current does not show at the node and how to measure it. PW-07, T-47 (mostly passed), T-48 (partly passed), O-12, §14.4 note; node schematic v0.5 |
 | 0.24 | 2026-11-07 | Camera power control on the bench (§14.4): T-40 passed (U5 switches the camera off and on cleanly), T-41 passed (a frame even with HALF ≈ 0 s after release, with and without USB); `t_cam_boot` 3 s → 0.5 s (§13); O-14 updated. Node console test hook `cam off|on` |
 | 0.23 | 2026-11-07 | Camera power: the EN-EL9a stays in the camera and is float-charged by the node at ≤ 8.0 V through + and − (§11.3 rewritten, §1, §6.2 J2 pin 1, §10, §12.1). Bench check on a lab supply at 8.21 V: no battery error, camera shoots, camera idle ≈ 100 mA. Float charger: Joy-IT BUCKBOOST02 at 8.00 V + 1N5822 + 1 Ω 3 W (passive current limit ≈ 0.95 A max); PW-05 updated, PW-06…PW-11 added; power budget with charger losses and the EN-EL9a buffer; T-14 revised, T-46…T-49 added; O-7, O-12, O-22 updated; node schematic v0.4 (float charger U6/D1/R10, J2 pin 2 n.c.) |
 | 0.22 | 2026-11-07 | Protocol version 2: HEARTBEAT carries the remote battery voltage (§7.2, §7.3); the node reports and logs it (FR-N20), so the remote's runtime can be logged on the node's USB console while the remote runs on its cell. Host tests 32 checks; HIL 15/15 (H03, H12 not run: node on its native port) |
